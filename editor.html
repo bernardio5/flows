@@ -1,0 +1,141 @@
+<!DOCTYPE html >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>workly.com/flows/editor</title>
+<link rel="stylesheet" href="styles.css">
+<script type="text/javascript" src="flNodes.js"></script>
+<script type="text/javascript" src="flEditor.js"></script>
+<script type="text/javascript">
+  var theE, theCx;
+
+  // callback for attribute text entry
+  function atrKeyIn(nID, iInd) { theE.atrKeyIn(nID, iInd, "ping"); }
+
+  // callback to select an attribute
+  function atrSelect(nID, iInd) { theE.atrSelect(nID, iInd); }
+
+  function starterupper() { 
+    var aCv = document.getElementById("theFlCanvas");
+    //theCx = aCv.getContext("2d");
+    theE = new flEditor(document, aCv); 
+    
+    aCv.addEventListener('mousemove', function(evt) { theE.mouseMove(evt); } ); 
+    aCv.addEventListener('mouseup', function(evt) { theE.mouseUp(evt); } ); 
+    aCv.addEventListener('mousedown', function(evt) { theE.mouseDown(evt); } ); 
+    // setInterval(function() { theE.redraw(theCx); }, 200); 
+    theE.redraw(); 
+  }
+
+
+</script>
+</head>
+
+<body onLoad="starterupper();" >
+<div class="container">
+
+  <div class="scrSheet"><!--node canvas-->
+      <div class="scrCanvasColumn">
+        <canvas id="theFlCanvas" 
+            class="scrCanvas" 
+            width="884" 
+            height="720"></canvas>
+        <div class="clear"></div>
+      </div>
+      <div class="scrNodeButtonColumn">
+        <div class="scrNodeButtonHolder">
+          <button onclick="theE.duplicateNode();" class="scrNodeOp">Duplicate</button></br>
+        </div>
+        <div class="scrNodeButtonHolder">
+          <button onclick="theE.deleteNode();" class="scrNodeOp">Delete</button></br>
+        </div>
+        <div id="makerButtonHolder">
+        </div>
+      </div>
+  </div>
+
+  <div class="conContainer"><!--controls-->
+    <div class="conBlockContainer">
+      <div class="conFileLeftButtonColumn">      
+            <div class="conFileLeftButtonHolder">
+              <button onclick="theE.spillAll();" class="conFileButton">Spill All</button>
+            <div class="clear"></div></div>
+            <div class="conFileLeftButtonHolder">
+              <button onclick="theE.spillOne();" class="conFileButton">Spill Selected</button>
+              <div class="clear"></div></div>
+            <div class="conFileLeftButtonHolder"> 
+              <button onclick="theE.useDefaults();" class="conFileButton">Use Defaults</button>
+            </div>
+            <div class="clear"></div>
+      </div>
+
+      <div class="conFileRightButtonColumn">      
+              <div class="conFileRightButtonHolder">
+                <button onclick="theE.slurpAll();" class="conFileButton">Slurp All</button>
+              </div>
+              <div class="conFileRightButtonHolder">
+                <button onclick="theE.slurpSelected();" class="conFileButton">Slurp Selected</button>
+              </div>
+              <div class="conFileRightButtonHolder"> 
+                 <button onclick="theE.setDefaults();" class="conFileButton">Set Defaults</button>
+              </div>
+              
+              <div class="clear"></div>  
+      </div>
+      <div class="clear"></div>
+    </div>
+
+    <div class="conBlockContainer">
+      <div class="conMakeDropHolder">
+                    <select id='nodeSet' class="conMakeDrop">
+                       <option value='0'>math nodes</option>
+                       <option value='1'>note nodes</option>
+                       <option value='2'>geometry nodes</option>
+                      <option value='3'>editor nodes</option>
+                    </select>
+      </div>
+      <div class="clear"></div>
+    </div>
+
+
+    <div class="conBlockContainer">
+      <div class="conXMLContainer">
+        <div class="conMessages" id="messages">messages go here</div>
+        <textarea class="conXMLPool" id="XMLpool" cols="30">XML editing area</textarea>
+      </div>
+    </div>
+
+    <div class="conBlockContainer">
+
+
+
+      <div class="conAttributeItem">
+             <div class="conAttributeNameSide">
+                Inputs:
+              </div>
+              <div class="clear"></div>
+      </div>
+      
+      <div id="inputsControls"> 
+      </div>
+      
+      <div class="conAttributeItem">
+             <div class="conAttributeNameSide">
+                Outputs:
+              </div>
+              <div class="clear"></div>
+      </div>
+      <div id="outputsControls"> 
+      </div>
+      
+
+      <div class="clear"></div>
+    </div>
+
+
+    <div class="clear"></div>
+
+  </div> <!--controls-->
+</div><!-- container -->
+
+</body>
+</html>
