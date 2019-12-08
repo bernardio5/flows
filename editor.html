@@ -22,6 +22,7 @@
     aCv.addEventListener('mousemove', function(evt) { theE.mouseMove(evt); } ); 
     aCv.addEventListener('mouseup', function(evt) { theE.mouseUp(evt); } ); 
     aCv.addEventListener('mousedown', function(evt) { theE.mouseDown(evt); } ); 
+    aCv.addEventListener('selectNodes', function(evt) { theE.setMakerButtons(evt); } ); 
     // setInterval(function() { theE.redraw(theCx); }, 200); 
     theE.redraw(); 
   }
@@ -41,7 +42,7 @@
             height="720"></canvas>
         <div class="clear"></div>
       </div>
-      <div class="scrNodeButtonColumn">
+      <div class="scrNodeButtonColumn"><!--node-set buttons here to allow them to stack nice-->
         <div class="scrNodeButtonHolder">
           <button onclick="theE.duplicateNode();" class="scrNodeOp">Duplicate</button></br>
         </div>
@@ -49,91 +50,77 @@
           <button onclick="theE.deleteNode();" class="scrNodeOp">Delete</button></br>
         </div>
         <div id="makerButtonHolder">
+			<div class="scrNodeButtonHolder">
+				  <button onclick="theE.makeNode('add');" class="scrNodeOp">Delete</button></br>
+				</div>
+       
         </div>
       </div>
   </div>
 
-  <div class="conContainer"><!--controls-->
+  <div class="conContainer"><!-- main controls div -->
     <div class="conBlockContainer">
-      <div class="conFileLeftButtonColumn">      
+      <div class="conFileLeftButtonColumn"> <!-- yellow buttons lhs -->
             <div class="conFileLeftButtonHolder">
-              <button onclick="theE.spillAll();" class="conFileButton">Spill All</button>
+              <button onclick="theE.edNew();" class="conFileButton">New/Clear</button>
             <div class="clear"></div></div>
             <div class="conFileLeftButtonHolder">
-              <button onclick="theE.spillOne();" class="conFileButton">Spill Selected</button>
+              <button onclick="theE.edSave();" class="conFileButton">Save</button>
               <div class="clear"></div></div>
             <div class="conFileLeftButtonHolder"> 
-              <button onclick="theE.useDefaults();" class="conFileButton">Use Defaults</button>
+              <button onclick="theE.edContext();" class="conFileButton">Context</button>
             </div>
             <div class="clear"></div>
       </div>
 
       <div class="conFileRightButtonColumn">      
-              <div class="conFileRightButtonHolder">
-                <button onclick="theE.slurpAll();" class="conFileButton">Slurp All</button>
+              <div class="conFileRightButtonHolder"><!-- yellow buttons rhs -->
+                <button onclick="theE.edLoad();" class="conFileButton">Load</button>
               </div>
               <div class="conFileRightButtonHolder">
-                <button onclick="theE.slurpSelected();" class="conFileButton">Slurp Selected</button>
+                <button onclick="theE.edImport();" class="conFileButton">Import</button></button>
               </div>
               <div class="conFileRightButtonHolder"> 
-                 <button onclick="theE.setDefaults();" class="conFileButton">Set Defaults</button>
+                 <button onclick="theE.edEvaluate();" class="conFileButton">Eval</button>
               </div>
               
               <div class="clear"></div>  
-      </div>
+      </div>	
       <div class="clear"></div>
     </div>
 
-    <div class="conBlockContainer">
+    <div class="conBlockContainer"><!-- dropdown node set switch -->
       <div class="conMakeDropHolder">
-                    <select id='nodeSet' class="conMakeDrop">
-                       <option value='0'>math nodes</option>
-                       <option value='1'>note nodes</option>
-                       <option value='2'>geometry nodes</option>
-                      <option value='3'>editor nodes</option>
-                    </select>
+         <select id='nodeSet' class="conMakeDrop" onChange="theE.setMakerButtons(value);"> </select>
       </div>
       <div class="clear"></div>
     </div>
-
-
     <div class="conBlockContainer">
-      <div class="conXMLContainer">
+      <div class="conXMLContainer"><!-- messages and text block-->
         <div class="conMessages" id="messages">messages go here</div>
         <textarea class="conXMLPool" id="XMLpool" cols="30">XML editing area</textarea>
       </div>
     </div>
-
     <div class="conBlockContainer">
-
-
-
       <div class="conAttributeItem">
              <div class="conAttributeNameSide">
                 Inputs:
               </div>
               <div class="clear"></div>
       </div>
-      
-      <div id="inputsControls"> 
+      <div id="inputsControls"> <!-- input attrs list here -->
       </div>
-      
       <div class="conAttributeItem">
              <div class="conAttributeNameSide">
                 Outputs:
               </div>
               <div class="clear"></div>
       </div>
-      <div id="outputsControls"> 
+      <div id="outputsControls"> <!-- yep --> 
       </div>
-      
-
       <div class="clear"></div>
     </div>
-
-
     <div class="clear"></div>
-
   </div> <!--controls-->
 </div><!-- container -->
 

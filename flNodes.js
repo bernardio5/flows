@@ -7,24 +7,23 @@
 
 
 /*
-flIO's are where nodes store their data. they can be either inputs or outputs. 
+flIO's are attached to nodes can be either inputs or outputs. 
 they hold connection data
 
-flNodes perform calculations. 
+flNodes generate code; the nodes exist to be a visual aid to command sequence construction. 
+each node owns its inputs and one output?
 
-flNodeSets hold an array of nodes and carry out evaluations.
+flGraphs hold an array of nodes and carry out evaluations.
 
 to evaluate a node network:
-   mark all nodes as not done
-   mark all flIOs as not ready
-   until all are done
-        for each node, 
-        	for each input 
-        	      if the input is constant, mark it as ready
-        	      if the input comes from an output from a done node, it's ready
-        	if all inputs are ready, update the node and mark it as ready. 
-	to do this, something will have to be tracking all the nodes. 
+	sort the nodes into an execution order
+	* nodes with no inputs, add first
+	* then any node st all of its inputs are already in the sorted list
+	* repeat till no more are added
+	* if any can't get added, you have a loop and can't eval the graph
 
+	generate a line of code for each node.  
+	maintain the sort at edit time? eh, have a button..
 
 to draw a node network
 	for each node
@@ -32,7 +31,10 @@ to draw a node network
 		draw the node	
 
 to create a node
-	set the node, set all connections to "not"
+	In the editor, there is a list of template nodes.
+	Those are created by scanning files or hard-coded.
+	The graph creates nodes by making a copy of an indicated node. 
+	
 
 to move a node, 
 	change the node's position
@@ -50,40 +52,108 @@ to link two nodes
 
 
 */
+
+//// utils
+function strEq(a,b) {
+	var a1 = new String(a).valueOf(); 
+	var b1 = new String(b).valueOf(); 
+	return (a1===b1);
+}
+
+
 /////////////////////////////////////////////////////////////
 // flIO: inputs, constants, and outputs
 // inputs connect to outputs. outputs are oblivious to connections
-// inputs SPY on outputs! 
+// inputs SPY on outputs!
 
 // constants: flIO data types; this.tp is one of these
-const FL_N = 0;  // null
-const FL_R = 1;  // number
-const FL_P = 2;  // parameter: number, modded to 0-1 range
-const FL_S = 3;  // str
-const FL_V = 4;  // vector4
-const FL_L = 5;  // list
+const FL_N = "FL_N";  // null
+const FL_R = "FL_R";  // number
+const FL_P = "FL_P";  // proportion  prBase
+const FL_S = "FL_S";  // str
+const FL_V = "FL_V";  // vector4
+const FL_L = "FL_L";  // list-- of numbers? hmm typed lists. 
+// tbd mx4, quaternions, colors, v4 lists, notes, beats, keys, tunings, signatures! rings lights
 
-
-// flIO describes an input/output connection ?
-function flIO(tp, varName, symbol, vlue, ioro, nodeID, indInNode, nx, ny) { 
-	this.tp = tp; 		// type (FL_P, etc)
-	this.vn = varName; 	// label for attr editor
-	this.sm = symbol; 	// symbol: 2 letters shown on node
-	this.vl = vlue; 	// value held by io
-	this.isIn = ioro;   // whether it's an input
-
-	this.nID = nodeID;  // this's index into owner node's array of inputs or outputs.
-	this.nInd = indInNode; 
-	this.nx = nx; 
-	this.ny = ny; 
-
+// flIO describes an input/output connection 
+function flIO() { 
+	this.tp = FL_N; 		// type (FL_P, etc)
+	this.vn = "uninit"; 	// label for attr editor
+	this.sm = "-"; 			// symbol: 2 letters shown on node
+	this.vl = 0.0; 			// value held by io
+	this.isIn = true;   	// whether it's an input
+	var chs = Math.floor(Math.random()*10); 
+	var col = "";
+	switch (chs) {
+		case 0: col="#000000"; break;
+		case 1: col="#333333"; break;
+		case 2: col="#666666"; break;
+		case 3: col="#999999"; break;
+		case 4: col="#bb5555"; break;
+		case 5: col="#55bb55"; break;
+		case 6: col="#5555bb"; break;
+		case 7: col="#bbbb55"; break;
+		case 8: col="#5588bb"; break;
+		case 9: col="#bb55bb"; break;
+	}
+	this.secondColor = col; 
+	this.nID = -1;  // this's index into owner node's array of inputs or outputs.
+	this.nInd = -1; 
+	this.nx = 100; 
+	this.ny = 200; 
 	this.con = false;   // whether connected; 
 	// if con==t, these will be set
 	this.cID = -1; 	// ID of node at other end of the connection
 	this.cInd = -1; 
-	this.cnx = -100.0;
-	this.cny = -100.0;
+	this.cnx = 200.0;
+	this.cny = 200.0;
+	this.isReady = false; 
+}
 
+
+flIO.prototype.init = function(tp, varName, symbol, vlue, ioro, nodeID, indInNode, nx, ny) { 
+	this.tp = tp; 		
+	this.vn = varName; 
+	this.sm = symbol; 	
+	this.vl = vlue; 	
+	this.isIn = ioro;   
+	this.nID = nodeID;  
+	this.nInd = indInNode; 
+	this.nx = nx; 
+	this.ny = ny; 
+}
+
+
+flIO.prototype.initFromTemplate = function(tmpl, nodeID, nx, ny) {
+	this.tp = tmpl.tp; 		
+	this.vn = tmpl.vn; 	
+	this.sm = tmpl.sm; 	
+	this.vl = tmpl.vl; 	
+	this.isIn = tmpl.isIn;   
+	this.nID = nodeID; 
+	this.nInd = tmpl.nInd; 
+	this.nx = nx; 
+	this.ny = ny; 
+	this.con = false;   
+}
+
+
+flIO.prototype.copy = function(tmpl, nodeID, nx, ny) {
+	this.tp = tmpl.tp; 		
+	this.vn = tmpl.vn; 	
+	this.sm = tmpl.sm; 	
+	this.vl = tmpl.vl; 	
+	this.isIn = tmpl.isIn;  
+	this.nID = nodeID;  
+	this.nInd = tmpl.nInd; 
+	this.nx = nx; 
+	this.ny = ny; 
+	this.secondColor = tmpl.secondColor; 
+	this.con = tmpl.con;  
+	this.cID = tmpl.cID; 	
+	this.cInd = tmpl.cInd; 
+	this.cnx = tmpl.cnx;
+	this.cny = tmpl.cny;
 	this.isReady = false; 
 }
 
@@ -107,7 +177,6 @@ flIO.prototype.disconnect = function() {
 	this.cny = -100.0; 
 	this.con = false; 
 }
-
 
 // call for all a node's flIO's when you move a node
 // also, for all the nodes that that have inputs pointing to that node--
@@ -176,32 +245,44 @@ flIO.prototype.isInside = function(mx, my) {
 }
 
 
-
 const FLIO_CNX = 9.0; // displacement of connector ends  
 const FLIO_CNY = 5.0; 
 
-// ASSUMING that cnxy is getting updated properly...
-// nope
+// ASSUMING that cnxy is getting updated properly
 flIO.prototype.drawLink = function(theCx) { 
-	var c1x, c2x, c2y, c1y, p1, p2;
+	var c1x, c2x, c2y, c1y, p1, p2, col;
 
 	if (!(this.isIn)) { return; } // draw only inputs
 	if (!(this.con)) { return; } // no connection to draw
 
+	switch (this.tp) { 
+		case FL_R: col = "#88ff88";  break; // number
+		case FL_S: col = "#ff8888";  break; // str
+		case FL_V: col = "#8888ff";  break; // vector4
+		case FL_L: col = "#ff88ff";  break; // list
+	}
+	theCx.fillStyle = col; 
+	
 	p1 = this.center(true);
 	c1x = p1[0] + FLIO_CNX;
 	c1y = p1[1];
-	theCx.fillRect(c1x-3, c1y-4, 7,4);
+	theCx.fillRect(c1x-4, c1y-4, 9,3);
 	
 	p2 = this.center(false);
 	c2x = p2[0] + FLIO_CNX;
 	c2y = p2[1] + FLIO_SZY;
-	theCx.fillRect(c2x-3, c2y, 7,3);
+	theCx.fillRect(c2x-4, c2y, 9,3);
 
 	// connection lines
+	theCx.strokeStyle = this.secondColor; 
 	theCx.beginPath();
-	theCx.moveTo(c1x, c1y); 
-	theCx.lineTo(c2x, c2y); 
+	theCx.moveTo(c1x+1, c1y); 
+	theCx.lineTo(c2x+1, c2y); 
+	theCx.stroke();
+	theCx.strokeStyle = col; 
+	theCx.beginPath();
+	theCx.moveTo(c1x-2, c1y); 
+	theCx.lineTo(c2x-2, c2y); 
 	theCx.stroke();
 }
 
@@ -216,10 +297,10 @@ flIO.prototype.drawBody = function(theCx) {
 	cy = pt[1];
 
 	switch (this.tp) { 
-		case FL_R: theCx.fillStyle = "88ff88";  break; // number
-		case FL_S: theCx.fillStyle = "ff8888";  break; // str
-		case FL_V: theCx.fillStyle = "8888ff";  break; // vector4
-		case FL_L: theCx.fillStyle = "ff88ff";  break; // list
+		case FL_R: theCx.fillStyle = "#88ff88";  break; // number
+		case FL_S: theCx.fillStyle = "#ff8888";  break; // str
+		case FL_V: theCx.fillStyle = "#8888ff";  break; // vector4
+		case FL_L: theCx.fillStyle = "#ff88ff";  break; // list
 	}
 	theCx.fillRect(cx, cy, FLIO_SZX, FLIO_SZY);
 	// label
@@ -242,20 +323,13 @@ flIO.prototype.getHTML = function() {
   		if (this.con) { 
 			res += '<div class="conAttributeValueSide">'+this.vl;
   			res += '--<button onclick="theE.disconnect(' + this.nID + ',' + this.nInd + ');" ';
-  			res += 'class="conAttributeDisconnectButton">X</button>';		
+  			res += 'class="conAttributeDisconnectButton">disconnect</button>';		
   		} else {
 			res += '<div class="conAttributeValueSide">';
 			res += '<input class="conAttributeInputBox" value="' + this.vl; 
 	  		res += '" onkeyup="atrKeyIn(' + this.nID+','+this.nInd+')">';
 		}
-
-/*		res += ':</div><div class="conAttributeValueSide"><input class="conAttributeInputBox" value="' + this.vl; 
-  		res += '" onkeyup="atrKeyIn(' + this.nID+','+this.nInd+')">';
-  		if (this.con) { 
-  			res += '<button onclick="theE.disconnect(' + this.nID + ',' + this.nInd;
-  			res += ');" class="conAttributeDisconnectButton">X</button>';
-		}
-*/		res += '</div></div>'; 
+		res += '</div></div>'; 
 	} else {
 		res = '<div class="conAttributeItem"><div class="conAttributeNameSide">' + this.vn;
 		res += ':</div><div class="conAttributeValueSide"><input class="conAttributeOutputBox" value="' + this.vl; 
@@ -272,82 +346,120 @@ flIO.prototype.getHTML = function() {
 /////////////////////////////////////////////////// nodes own io and do stuff
 /////////////////////////////////////////////////// nodes own io and do stuff
 
-// node types are defined by at least two functions: "initAs" and an "evaluate" 
-// nodes that need more interface (seqencer, curve) also define a redraw and
-// set a flag. TBD! 
+// graphs contain nodes. there is only one node type. 
+// nodes are initialized either from text descriptions or other nodes. 
 
-// nodes are organized into sets, for the sake of UX menus not containing many dozens of node types.  
-// given a node "setNumber", there are n node types. 
+// nodes contain a command string that is used to generate a line of code. 
+// the code is then put in some context and becomes part of a program.
+// node ID and type name are used to generate a unique variable name
+// I expect that the code generated is generally "varX = expr(inputa, inputb);"
+// All the generation step has to do is sub in the variable names for the inputs placeholders. 
 
-// type numbers! organize types into sets by adding 30
-const FLND_TADDER = 0;   
-const FLND_TTIME = 1;  
-const FLND_TEXPR = 2;  
-const FLND_TVEC = 3;  
+// the editor has a collection of example nodes that are copied to create nodes in the graph. 
+// the example nodes can be created from files or hardcoded. 
 
-function flNode(type, x, y, nodeIndex) { 
-	this.tp = type;
+// nodes are organized into "gp" groups, to avoid having the UI limit the max type ct. 
+
+
+
+function flNode() { 
+	this.tp = "uninit";    // short type name used to name variables & for io labels -- unique!
+	this.name = "uninit";  // name of this node or long template name for buttons
+	this.gp = -1;		   // group number 0math 4gl etc.
+	this.command = 'console.log("uninitialized node type");'  // string for code gen
+	this.posX = 100;		// postion on screen
+	this.posY = 100;
+	this.isSelected = false;// whether selected
+	this.nodeID = -1;		// how other objs think of you 
+	this.inputs = []; 		// flIO's
+	this.outputs = []; 
+	this.wdt = 200.0;		// width, set by #flIOs
+	this.ord = -1; 			// execution order in graph; -1 is error
+}
+
+// this fn inits a node as a template node, so no node ID or position
+// line format is 
+//?? tp name gp command otype inputType1 iName1 iLab1 defVal1 ... 
+// a node group number?
+flNode.prototype.initTypeFromLine = function(line) {
+	var wds = line.split(' '); 
+	var ct = wds.length; 
+	if (ct<6) return -1; // not enough arguments
+	if (!strEq(wds[0], "//??")) return -1; // no leading //??
+	if ((ct-6)%4!=0) return -2; // odd number of input args
+	var inpct = (ct-6)/4; 
+	this.tp= wds[1];
+	this.name = wds[2];
+	this.gp = parseInt(wds[3]); // to int! 
+	this.command = wds[4];	
+	this.posX = -1;
+	this.posY = -1;
+	this.isSelected = false; 
+	this.nodeID = -1;
+	// find the entry that contains 'out'-> outInd => #args= (outInd / 3)-1
+	for (var i=0; i<inpct; ++i) { 
+		var tp = wds[(i*4)+6]; 
+		var nm = wds[(i*4)+7]; 
+		var lb = wds[(i*4)+8]; 
+		var defVal = wds[(i*4)+9];
+		var io = new flIO();
+		io.init(tp, nm, lb, defVal, true, -1, i, -1,-1);
+		this.inputs.push(io);
+	}
+	this.wdt = (inpct * FLIO_SZX)-13.0;
+	if (this.wdt<50.0) { this.wdt = 50.0; }
+	// no default output value. 
+	var tp = wds[5];
+	var nm = this.tp;
+	var lb =  "temp err";
+	var io = new flIO();
+	io.init(tp, nm, lb, 0.0, false, -1, 0, -1,-1);	
+	this.outputs.push(io);
+}
+
+
+flNode.prototype.initFromTemplate = function(tpl, idnumber, x, y) {
+	this.tp = tpl.tp;
+	this.name = this.tp + idnumber;
+	this.gp = tpl.gp;
+	this.command = tpl.command;
 	this.posX = x;
 	this.posY = y;
 	this.isSelected = false; 
-	this.nodeID = nodeIndex;
-
-	this.inputs = []; 
-	this.outputs = []; 
-	this.inputs[0] = new flIO(FL_S, "label", "--", "nd"+nodeIndex, true, nodeIndex, 0, x, y);
-
-	switch (type) { 
-		case FLND_TADDER: 	this.initAsAdder(); 	break;
-		case FLND_TTIME: 	this.initAsTime(); 		break;
-		case FLND_TEXPR: 	this.initAsExpression(); break;
-		case FLND_TVEC: 	this.initAsVector(); 	break;
+	this.nodeID = idnumber;
+	for (var i=0; i<tpl.inputs.length; ++i) {
+		var io = new flIO(); 
+		io.initFromTemplate(tpl.inputs[i], idnumber, x, y); 
+		this.inputs.push(io);
 	}
-	
-	this.wdt = ((this.inputs.length) * FLIO_SZX)-13.0;
-	if (this.wdt<43.0) { this.wdt = 43.0; }
-
-}
-
-
-flNode.prototype.getTypeName = function(typeNum) {
-	var res = ''; 
-	switch (typeNum) { 
-		case FLND_TADDER: res = "adder";  break; 
-		case FLND_TTIME: res = "time";  break; 
-		case FLND_TEXPR: res = "expression";  break; 
-		case FLND_TVEC: res = "make vec4";  break; 
+	for (var i=0; i<tpl.outputs.length; ++i) {
+		var io = new flIO(); 
+		io.initFromTemplate(tpl.outputs[i], idnumber, x, y); 
+		this.outputs.push(io);
 	}
-	return res; 
-}
-
-	
-
-flNode.prototype.initAsAdder = function() {
-	this.inputs[1] = new flIO(FL_R, "left-hand side", "Lh", 0, true, this.nodeID, 1, this.posX, this.posY);
-	this.inputs[2] = new flIO(FL_R, "right-hand side", "Rh", 0, true, this.nodeID, 2, this.posX, this.posY);
-	this.outputs[0] = new flIO(FL_R, "sum", "S", 0, false, this.nodeID, 0, this.posX, this.posY);
+	this.wdt = tpl.wdt;
 }
 
 
-flNode.prototype.initAsTime = function() {
-	this.outputs[0] = new flIO(FL_R, "time", "T", 0, false, this.nodeID, 0, this.posX, this.posY);
-}
-
-
-flNode.prototype.initAsExpression = function() {
-	this.inputs[1] = new flIO(FL_R, "A", "A", 0, true, this.nodeID, 1, this.posX, this.posY);
-	this.inputs[2] = new flIO(FL_R, "B", "B", 0, true, this.nodeID, 2, this.posX, this.posY);
-	this.inputs[3] = new flIO(FL_R, "C", "C", 0, true, this.nodeID, 3, this.posX, this.posY);
-	this.inputs[4] = new flIO(FL_S, "expr", "Ex", "A+B+C", true, this.nodeID, 4, this.posX, this.posY);
-	this.outputs[0] = new flIO(FL_R, "result", "R", 0, false, this.nodeID, 0, this.posX, this.posY);
-}
-
-flNode.prototype.initAsVector = function() {
-	this.inputs[1] = new flIO(FL_R, "X", "X", 0, true, this.nodeID, 1, this.posX, this.posY);
-	this.inputs[2] = new flIO(FL_R, "Y", "Y", 0, true, this.nodeID, 2, this.posX, this.posY);
-	this.inputs[3] = new flIO(FL_R, "Z", "Z", 0, true, this.nodeID, 3, this.posX, this.posY);
-	this.inputs[4] = new flIO(FL_S, "W", "W", 0, true, this.nodeID, 4, this.posX, this.posY);
-	this.outputs[0] = new flIO(FL_V, "result", "R", 0, false, this.nodeID, 0, this.posX, this.posY);
+flNode.prototype.copy = function(it, idnumber) {
+	this.tp = it.tp;
+	this.name = this.tp + idnumber;
+	this.command = it.command;
+	this.posX = it.x+100; 
+	this.posY = it.y+100;
+	this.isSelected = false; 
+	this.nodeID = idnumber;
+	for (var i=0; i<it.inputs.length; ++i) {
+		var io = new flIO(); 
+		io.copy(it.inputs[i], idnumber, it.x+100, it.y+100); 
+		this.inputs.push(io);
+	}
+	for (var i=0; i<it.outputs.length; ++i) {
+		var io = new flIO(); 
+		io.copy(it.outputs[i], idnumber, it.x+100, it.y+100); 
+		this.outputs.push(io);
+	}
+	this.wdt = tpl.wdt;
 }
 
 
@@ -382,10 +494,10 @@ flNode.prototype.drawBody = function(theCx) {
 	// label
 	theCx.font = "14px Arial";
 	theCx.fillStyle = "#000000";
-	theCx.fillText(this.inputs[0].vl, x+2, y+25);
+	theCx.fillText(this.name, x+2, y+25);
 	theCx.font = "10px Arial";
 	theCx.fillStyle = "#000000";
-	theCx.fillText(this.getTypeName(this.tp), x+2, y+35);
+	theCx.fillText(this.command, x+2, y+35);
 
 	// drawing flIOs
 	len = this.inputs.length;  
@@ -454,7 +566,7 @@ flNode.prototype.disconnect = function(inInd) {
 
 
 
-// given mose position, inside it or inputs? 
+// given mouse position, inside it or inputs? 
 
 // the idea of the hitTest that returns one integer: 
 // there will never be more than 40 inputs and 40 outputs on a node
@@ -496,7 +608,7 @@ flNode.prototype.hitTest = function(mx, my) {
 	}
 	// console.log("node "+this.nodeID+" hit res:"+res);
 	return res; 
-} 
+}
 
 
 
@@ -531,28 +643,17 @@ flNode.prototype.getOutputsHTML = function() {
 
 
 
-flNode.prototype.getTypeButton = function(setNumber, index) {
-	var typeNum = (setNumber*30)+index;
-	var typeName = this.getTypeName(typeNum);
+flNode.prototype.getTypeButton = function() {
 	var res = '';
-	if (typeName.length>1) { 
+	if (this.tp.length>0) { 
 		res = '<div class="scrNodeButtonHolder">' ;
-		res += '<button onclick="theE.makeNode('+typeNum+');" class="scrNodeButton">';
-		res += this.getTypeName(typeNum) + '</button></div>';
+		res += '<button onclick="theE.makeNode("'+this.tp+'");" class="scrNodeButton">';
+		res += this.name + '</button></div>';
 	}
 	return res; 
 }
 
 
-flNode.prototype.getMakerButHTML = function(setNumber) { 
-	var i, n, res;
-	res = ""; 
-	len = 29;
-	for (i=0; i<len; ++i) { 
-		res += this.getTypeButton(setNumber, i);
-	}
-    return res; 
-}
 
 
 
@@ -567,17 +668,17 @@ flNode.prototype.getMakerButHTML = function(setNumber) {
 
 function flGraph(context) { 
 	this.cx = context; 
+	this.cx.lineWidth =2;
 	this.nodes = []; 
 	this.selectedNode = -1; 
-	var i, x, y; 
-	for (i=0; i<3; i=i+1) { 
-		x = 150.0 + 80*i; 
-		y = 150.0 + 100*i; 
-		this.nodes[i] = new flNode(i, x, y, i); // type, x, y, index
-	}
-	this.nextX = 400.0; // where the next node will be made
-	this.nextY = 150.0;
+	this.nextX = 120.0; // where the next node will be made
+	this.nextY = 120.0;
 	this.t = 0.0; 
+	// the graph returns a program
+	this.header = ""; // this part comes before that program
+	this.footer = ""; // after
+	this.prefix = ""; // between the = and body of each command
+	this.targetFile = ""; // file to save to
 }
 
 
@@ -610,37 +711,43 @@ flGraph.prototype.redraw = function() {
 }
 
 
-flGraph.prototype.makeNode = function(type) {
+flGraph.prototype.makeNode = function(otherNode) {
 	var ind; 
 
 	ind = this.nodes.length; 
-	this.nodes[ind] = new flNode(type, this.nextX, this.nextY,ind);
+	var nn = new flNode();
+	nn.initFromTemplate(otherNode, ind, this.nextX, this.nextY); 
+	this.nodes.push(nn); 
 
 	// update position to make next node
 	this.setMakeSite(this.nextX +5.0, this.nextY+60.0);
-
-	// autolink: to test.	
-	if (this.nodes[ind].inputs.length>1) {
-		// link this.in.1 to previous.out.0 
-		this.nodes[ind].connect(1, this.nodes[ind-1], 0);
-	}
 	this.selectedNode = ind; 
 	this.redraw(); 
+	return "made '"+ otherNode.tp + "' node";
 }
 
 flGraph.prototype.deleteNode = function() {
 }
-flGraph.prototype.duplicateNode = function() {
+
+flGraph.prototype.duplicateNode = function(node) {
+	ind = this.nodes.length; 
+	var nn = new flNode();
+	nn.copy(otherNode, ind); 
+	this.nodes.push(nn);
+	this.selectedNode = ind; 
+	this.redraw(); 
 }
 
 
 
-flGraph.prototype.spillAll = function() { return "spill all"; }
-flGraph.prototype.spillOne = function() { return "spillOne"; }
-flGraph.prototype.spillSelected = function() {	return "spillSelected"; }
-flGraph.prototype.useDefaults = function() { return "useDefaults";}
-flGraph.prototype.slurpAll = function() { return "slurpAll"; }
-flGraph.prototype.slurpSelected = function() { return "slurpSelected"; }
+flGraph.prototype.edNew = function() { return "clear"; }
+flGraph.prototype.edSave = function() { return "save"; }
+flGraph.prototype.edLoad = function() {return "context"; }
+
+flGraph.prototype.edImport = function() { return "load";}
+flGraph.prototype.edContext = function() { return "import"; }
+flGraph.prototype.edEvaluate = function() { return "exec"; }
+
 flGraph.prototype.setDefaults = function() { return "setDefaults"; }
 
 
@@ -734,11 +841,6 @@ flGraph.prototype.getOutputsHTML = function() {
 	return this.nodes[this.selectedNode].getOutputsHTML(); 
 }
 
-flGraph.prototype.getMakerButHTML = function(setNumber) { 
-	var res = this.nodes[0].getMakerButHTML(setNumber);
-	return res;  
-}
-
 
 
 // need inputNode, input ind, outut node, out ind
@@ -774,6 +876,42 @@ flGraph.prototype.moveNode = function(hit, nx, ny) {
 }
 
 
+
+flGraph.prototype.updateEvalOrder = function() {
+	var res = false; 
+	var nextCmd = 0;
+	var ct = this.nodes.length;  
+	var i; 
+	// init all eval-order vals to -1 
+	for (i=0; i<ct; ++i) { 
+		if (this.nodes[i].inputs.length ===0) { 
+			// nodes with no input, just set to not-1 right off
+			this.nodes[i].ord = nextCmd; 
+			++nextCmd; 
+		} else {
+			// else gotta sort
+			this.nodes[i].ord = -1; 
+		}
+	}
+	/*
+	var notDone = false; 
+	while (notDone) {
+		var hadProgress = false; 
+		for (i=0; i<ct; ++i) { 
+		  //  
+			// nodes with inputs, if all inputs are not-1, set to next index
+			// repeat until none are set in a loop
+			// if any are -1, there's a loop and failure
+		}
+		*/	
+	// nodes with inputs, if all inputs are not-1, set to next index
+	// repeat until none are set in a loop
+	// if any are -1, there's a loop and failure
+}
+
+
+
+
 flGraph.prototype.evaluate = function() {
 }
 
@@ -787,4 +925,6 @@ flGraph.prototype.update = function() {
 	this.t += 0.05;
 	this.evaluate(); 
 }
+
+
 

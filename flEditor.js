@@ -18,6 +18,12 @@ function flEditor(aDoc, aCanvas) {
 	// THE GRAPH!! 
 	this.theG = new flGraph(this.theCx);
 
+	// template nodes
+	this.templs = [];
+	this.theDrop = aDoc.getElementById("nodeSet"); // dropdown
+    this.makersDiv = aDoc.getElementById("makerButtonHolder"); // for the buttons
+	this.initStandardNodes(); 
+
 	// user input
 	this.keysDown = []; 
 	this.mouseStartX =-100.0;
@@ -28,19 +34,101 @@ function flEditor(aDoc, aCanvas) {
 	this.mouseAction = 0; //0:nil 1:bg 2:drag 3:connect
 	this.startHit = -1; 
 
+	var i; // can you even make any? huh? 
+	for (i=0; i<3; i=i+1) { 
+		this.theG.makeNode(this.templs[i])
+	}
+
 	this.theText = aDoc.getElementById("messages");
-    this.theText.innerHTML = "flEditor is loaded!";
+    this.theText.innerHTML = "Editor loads ok!";
 
     // where to put flIO's for selected node
     this.inputsDiv = aDoc.getElementById("inputsControls");
     this.outputsDiv = aDoc.getElementById("outputsControls");
     
-    // where to put node-making buttons
-    this.makersDiv = aDoc.getElementById("makerButtonHolder");
-    this.setMakerButtons(0); 
-
     this.ready = true; 
+}
 
+
+flEditor.prototype.initStandardNodes = function() { 
+	//?? tp name gp command otype inputType1 iName1 iLab1 defVal1 ... 
+
+	// type 0's math
+	var nd = new flNode(); 
+	nd.initTypeFromLine("//?? add adder 0 (in1+in2); FL_R FL_R Input_1 n1 0 FL_R Input_2 n2 0"); 
+	this.templs.push(nd); 
+	
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? rnd random 0 Math.random(); FL_R"); 
+	this.templs.push(nd); 
+	
+	
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? t time 0 mainDate.getTime(); FL_R"); // requires presence of var mainDate=new Date(); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? lin A*B+C 0 ((A*B)+C); FL_R FL_R A A 1.0 FL_R B B 1.0 FL_R C C 1.0"); 
+	this.templs.push(nd); 
+/*
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? sin Math.sin((W*T)+O); FL_R waveln WL 1.0 FL_R offset OF 0.0 out FL_R sn 0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? cos Math.cos((W*T)+O); FL_R waveln WL 1.0 FL_R offset OF 0.0 out FL_R cs 0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? tan Math.tan((W*T)+O); FL_R waveln WL 1.0 FL_R offset OF 0.0 out FL_R tn 0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? exp Math.pow(A,B); FL_R mantissa M 1.0 FL_R expn O 1.0 out FL_R ex 0"); 
+	this.templs.push(nd);
+	log etc 
+*/
+	// 1 control- buuut what's the output type? bah.
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? if if 1 (C!=0)?A:B; FL_R FL_R condition C 1 FL_D main_A A 0 FL_D alternate_B B 0"); 
+	this.templs.push(nd); 
+/*
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? while while(C!=0){A}; FL_R condition C 1.0 FL_D action A ; out FL_D wh 1"); 
+	this.templs.push(nd); 
+*/
+	// 2 proportion
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? pt point 2 this.pg.point(X,Y); FL_P FL_R X X 0.5 FL_R Y Y 0.5"); 
+	this.templs.push(nd); 
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? ln line 2 this.pg.line(X,Y); FL_P FL_P P1 P1 0 FL_P P2 P2 0"); 
+	this.templs.push(nd); 
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? cr circle 2 this.pg.circle(X,Y); FL_P FL_P P1 P1 0 FL_P P2 P2 0"); 
+	this.templs.push(nd); 
+	/*
+	nd = new flNode(); 
+	nd.initTypeFromLine("line this.pg.line(A,B) FL_PR pointA A 0 FL_PR pointB B 0 out FL_PR ln 2"); 
+	this.templs.append(nd); 
+
+	// 3 music  4 linear algebra  5 webgl  6 colors  7 HTML (sakes)
+*/
+
+	var sels = "<option value='0'>math nodes</option>";
+	sels += "<option value='1'>control</option><option value='2'>proportion</option>"
+    sels += "<option value='3'>music</option><option value='4'>lin alg</option>";
+	sels += "<option value='5'>WebGL</option><option value='6'>color</option>";
+	this.theDrop.innerHTML = sels;
+	this.setMakerButtons("0"); 
+}
+
+flEditor.prototype.getTemplate = function(type) { 
+	for (var i=0; i<this.templs.length; ++i) { 
+		var nt = this.templs[i]; 
+		if (strEq(nt.tp, type)) return nt;
+	}
+	return false;
 }
 
 
@@ -50,47 +138,83 @@ flEditor.prototype.redraw = function() {
 
 // node buttons column
 flEditor.prototype.makeNode = function(type) { 
-	this.theG.makeNode(type); 
+	var ex = this.getTemplate(type);
+	if (!ex) this.theText.innerHTML = "makenode unknown type " + type; 
+	this.theText.innerHTML = this.theG.makeNode(ex); 
+}
+
+
+flEditor.prototype.callbackmaker = function(className) {
+	return function() { theE.makeNode(className); }
 }
 
 flEditor.prototype.setMakerButtons = function(setNumber) {
-    this.makersDiv.innerHTML = this.theG.getMakerButHTML(setNumber); 
+   	var res = "";
+   	var v = parseInt(setNumber); 
+	var len = this.templs.length; 
+	this.makersDiv.innerHTML = "";
+	for (var i=0; i<len; ++i) {
+		if (this.templs[i].gp===v) {
+			var bd = document.createElement("DIV"); 
+			bd.className = "scrNodeButtonHolder";
+			var but = document.createElement("BUTTON");
+			var st = this.templs[i].tp; 
+			but.innerText = st;
+			but.className = "scrNodeButton";
+			but.onclick = this.callbackmaker(st); 
+			bd.appendChild(but);
+			this.makersDiv.appendChild(bd);
+		}
+	}   
 }
 
-flEditor.prototype.duplicateNode = function() { 
-	this.theG.duplicateNode(); 
+/*
+flNode.prototype.getTypeButton = function() {
+	var res = '';
+	if (this.tp.length>0) { 
+		res = '<div class="scrNodeButtonHolder">' ;
+		res += '<button onclick="theE.makeNode("'+this.tp+'");" class="scrNodeButton">';
+		res += this.name + '</button></div>';
+	}
+	return res; 
 }
+*/
+
+flEditor.prototype.duplicateNode = function() { 
+	ex = this.getTemplate(type);
+	this.theG.initFromTemplate(ex); 
+}
+
 flEditor.prototype.deleteNode = function() { 
 	this.theG.deleteNode(); 
 }
 
 // main editor button set callbacks
-flEditor.prototype.spillAll = function() { 
-	this.theText.innerHTML = this.theG.spillAll(); 
+flEditor.prototype.edNew = function() { 
+	this.theText.innerHTML = this.theG.edClear(); 
 }
 
-flEditor.prototype.spillOne = function() {
-	this.theText.innerHTML = this.theG.spillOne(); 
+flEditor.prototype.edSave = function() {
+	this.theText.innerHTML = this.theG.getTextForSave(); 
 }
 
-flEditor.prototype.spillSelected = function() {
-	this.theText.innerHTML = this.theG.spillSelected(); 
+flEditor.prototype.edLoad = function() {
+	var txt = "";
+	this.theText.innerHTML = this.theG.setFromSaveText(txt); 
 }
 
-flEditor.prototype.useDefaults = function() {
-	this.theText.innerHTML = this.theG.useDefaults(); 
+
+flEditor.prototype.edContext = function() {
+	// but mostly just set divs hidden or not
+	this.theText.innerHTML = this.theG.edContext(); 
 }
 
-flEditor.prototype.slurpAll = function() {
-	this.theText.innerHTML = this.theG.slurpAll(); 
+flEditor.prototype.edImport = function() {
+	this.theText.innerHTML = this.theG.edImport(); 
 }
 
-flEditor.prototype.slurpSelected = function() {
-	this.theText.innerHTML = this.theG.slurpSelected(); 
-}
-
-flEditor.prototype.setDefaults = function() {
-	this.theText.innerHTML = this.theG.setDefaults(); 
+flEditor.prototype.edEvaluate = function() {
+	this.theText.innerHTML = this.theG.edEvaluate(); 
 }
 
 
@@ -208,7 +332,7 @@ flEditor.prototype.inputConnect = function(h1, h2) {
 		 return; 
 	} // no second node
 	if (h2i>0) { 	 
-		this.theText.innerHTML = "con't connect 2 inputs";
+		this.theText.innerHTML = "can't connect 2 inputs";
 		return; 
 	} 
 	if (h2o<0) { 
@@ -216,7 +340,7 @@ flEditor.prototype.inputConnect = function(h1, h2) {
 		return; 
 	} // no ouput 
 	if (h1n===h2n) {  	 
-		this.theText.innerHTML = "con't connect 2 yourself";
+		this.theText.innerHTML = "can't connect to yourself";
 		return; 
 	} // can't connect to yourself (for now?)
 
