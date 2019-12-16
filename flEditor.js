@@ -49,71 +49,120 @@ function flEditor(aDoc, aCanvas) {
     this.ready = true; 
 }
 
-
+/* constants: flIO data types; this.tp is one of these
+const FL_N = "FL_N"; // null/error/uninit
+const FL_R = "FL_R"; // number
+const FL_P = "FL_P"; // proportion  prBase
+const FL_S = "FL_S"; // str
+const FL_V = "FL_V"; // vector4
+const FL_C = "FL_C"; // color "xrrggbb"
+const FL_B = "FL_B"; // a beat loop?
+const FL_L = "FL_RL";// list of R's
+*/
 flEditor.prototype.initStandardNodes = function() { 
-	//?? tp name gp command otype inputType1 iName1 iLab1 defVal1 ... 
-
+	//?? sm gp command otype inputType1 iName1 iSymbol defVal1 ... 
+	// sure great lets change them all again! 
 	// type 0's math
 	var nd = new flNode(); 
-	nd.initTypeFromLine("//?? add adder 0 (in1+in2); FL_R FL_R Input_1 n1 0 FL_R Input_2 n2 0"); 
+	nd.initTypeFromLine("//?? ad add 0 (n1+n2); FL_R FL_R Input_1 n1 0 FL_R Input_2 n2 0"); 
 	this.templs.push(nd); 
 	
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? rnd random 0 Math.random(); FL_R"); 
+	nd.initTypeFromLine("//?? rn random 0 Math.random(); FL_R"); 
 	this.templs.push(nd); 
 	
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? t seconds 0 mainDate.getTime(); FL_R"); // requires presence of var mainDate=new Date(); 
+	this.templs.push(nd); 
 	
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? t time 0 mainDate.getTime(); FL_R"); // requires presence of var mainDate=new Date(); 
+	nd.initTypeFromLine("//?? fr frame 0 frameNumber; FL_R"); 
 	this.templs.push(nd); 
 
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? lin A*B+C 0 ((A*B)+C); FL_R FL_R A A 1.0 FL_R B B 1.0 FL_R C C 1.0"); 
-	this.templs.push(nd); 
-/*
-	nd = new flNode(); 
-	nd.initTypeFromLine("//?? sin Math.sin((W*T)+O); FL_R waveln WL 1.0 FL_R offset OF 0.0 out FL_R sn 0"); 
+	nd.initTypeFromLine("//?? li linear 0 ((A*B)+C); FL_R FL_R A A 1.0 FL_R B B 1.0 FL_R C C 1.0"); 
 	this.templs.push(nd); 
 
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? cos Math.cos((W*T)+O); FL_R waveln WL 1.0 FL_R offset OF 0.0 out FL_R cs 0"); 
+	nd.initTypeFromLine("//?? sn sine 0 A*Math.sin(T); FL_R FL_R amplitude A 1.0 FL_R T T 0.0"); 
 	this.templs.push(nd); 
 
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? tan Math.tan((W*T)+O); FL_R waveln WL 1.0 FL_R offset OF 0.0 out FL_R tn 0"); 
+	nd.initTypeFromLine("//?? cs cosine 0 A*Math.cos(T); FL_R FL_R amplitude A 1.0 FL_R T T 0.0");  
 	this.templs.push(nd); 
 
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? exp Math.pow(A,B); FL_R mantissa M 1.0 FL_R expn O 1.0 out FL_R ex 0"); 
+	nd.initTypeFromLine("//?? tn tangent 0 A*Math.tan(T); FL_R FL_R amplitude A 1.0 FL_R T T 0.0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? pi pi 0 A*pi+B; FL_R FL_R A A 1.0 FL_R B B 0.0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? ex eponent 0 Math.pow(A,B); FL_R FL_R mantissa M 1.0 FL_R expn O 1.0 out FL_R ex 0"); 
 	this.templs.push(nd);
-	log etc 
-*/
+
 	// 1 control- buuut what's the output type? bah.
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? if if 1 (C!=0)?A:B; FL_R FL_R condition C 1 FL_D main_A A 0 FL_D alternate_B B 0"); 
+	nd.initTypeFromLine("//?? if if 1 (C!=0)?A:B; FL_R FL_R condition C 1 FL_R main_A A 0 FL_R alternate_B B 0"); 
 	this.templs.push(nd); 
-/*
-	nd = new flNode(); 
-	nd.initTypeFromLine("//?? while while(C!=0){A}; FL_R condition C 1.0 FL_D action A ; out FL_D wh 1"); 
+
+	nd = new flNode(); // iterator. requires thought
+	nd.initTypeFromLine("//?? itr iterator 1 for(i=A;i<B;i=i+C) FL_R FL_R condition C 1.0 FL_D action A ; out FL_D wh 1"); 
 	this.templs.push(nd); 
-*/
+
 	// 2 proportion
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? pt point 2 this.pg.point(X,Y); FL_P FL_R X X 0.5 FL_R Y Y 0.5"); 
+	nd.initTypeFromLine("//?? ppt prPoint 2 this.pg.point(X,Y); FL_P FL_R X X 0.5 FL_R Y Y 0.5"); 
 	this.templs.push(nd); 
+	
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? ln line 2 this.pg.line(X,Y); FL_P FL_P P1 P1 0 FL_P P2 P2 0"); 
+	nd.initTypeFromLine("//?? pln prLine 2 this.pg.line(P1,P2); FL_P FL_P P1 P1 0 FL_P P2 P2 0"); 
 	this.templs.push(nd); 
+	
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? cr circle 2 this.pg.circle(X,Y); FL_P FL_P P1 P1 0 FL_P P2 P2 0"); 
+	nd.initTypeFromLine("//?? pci prCircle 2 this.pg.circle(C,R); FL_P FL_P C C 0 FL_P R R 0"); 
 	this.templs.push(nd); 
-	/*
-	nd = new flNode(); 
-	nd.initTypeFromLine("line this.pg.line(A,B) FL_PR pointA A 0 FL_PR pointB B 0 out FL_PR ln 2"); 
-	this.templs.append(nd); 
 
-	// 3 music  4 linear algebra  5 webgl  6 colors  7 HTML (sakes)
-*/
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? psg prSegment 2 this.pg.segment(L,P1,P2); FL_P FL_P L L 0 FL_P P1 P1 0 FL_P P2 P2 0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? par prArc 2 this.pg.arc(C,P1,P2,PN); FL_P FL_P C C 0 FL_P P1 P1 0 FL_P P2 P2 0 FL_P PN PN 0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? plf prLoft 2 this.pg.loft(S1,S2,C); FL_P FL_P C C 0 FL_P P2 P2 0 FL_C C C xfff"); 
+	this.templs.push(nd); 
+
+	// 3 music  
+	
+	// 4 linear algebra  
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? v4 3 vec4(X,Y,Z,W); FL_V FL_R X X 0 FL_R Y Y 0 FL_R Z Z 0 FL_R W W 0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? m4 3 mx4(R1,R2,R3,R4); FL_M FL_V R1 R1 0 FL_V R2 R2 0 FL_V R3 R3 0 FL_V R4 R4 0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? lk 3 looking(P,L,U); FL_M FL_R P P 0 FL_R L L 0 FL_R U U 0"); 
+	this.templs.push(nd); 
+
+	// 5 webgl  
+	
+	// 6 colors
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? cl 6 color(R,G,B,A); FL_C FL_R R R 0 FL_R G G 0 FL_R B B 0 FL_R A A 0"); 
+	this.templs.push(nd); 
+
+	nd = new flNode(); 
+	nd.initTypeFromLine("//?? cl 6 color(H,S,B,A); FL_C FL_R H H 0 FL_R S S 0 FL_R B B 0 FL_R A A 0"); 
+	this.templs.push(nd); 
+
 
 	var sels = "<option value='0'>math nodes</option>";
 	sels += "<option value='1'>control</option><option value='2'>proportion</option>"
@@ -375,7 +424,7 @@ flEditor.prototype.outputConnect = function(h1, h2) {
 		return; 
 	 } // no input
 	if (h1n===h2n) {  	 
-		this.theText.innerHTML = "con't connect 2 yourself";
+		this.theText.innerHTML = "can't connect 2 yourself";
 		return; 
 	} // can't connect to yourself (for now?)
 

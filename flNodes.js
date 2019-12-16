@@ -67,20 +67,25 @@ function strEq(a,b) {
 // inputs SPY on outputs!
 
 // constants: flIO data types; this.tp is one of these
-const FL_N = "FL_N";  // null
-const FL_R = "FL_R";  // number
-const FL_P = "FL_P";  // proportion  prBase
-const FL_S = "FL_S";  // str
-const FL_V = "FL_V";  // vector4
-const FL_L = "FL_L";  // list-- of numbers? hmm typed lists. 
+const FL_N = "FL_N"; // null
+const FL_R = "FL_R"; // number
+const FL_P = "FL_P"; // proportion  prBase
+const FL_S = "FL_S"; // str
+const FL_V = "FL_V"; // vector4
+const FL_C = "FL_C"; // color "xrrggbb"
+const FL_B = "FL_B"; // a beat loop?
+const FL_L = "FL_RL";// list of R's
+
 // tbd mx4, quaternions, colors, v4 lists, notes, beats, keys, tunings, signatures! rings lights
 
 // flIO describes an input/output connection 
 function flIO() { 
-	this.tp = FL_N; 		// type (FL_P, etc)
-	this.vn = "uninit"; 	// label for attr editor
-	this.sm = "-"; 			// symbol: 2 letters shown on node
-	this.vl = 0.0; 			// value held by io
+	this.tp = FL_N; 		// value type (FL_P, etc)
+	this.vn = "uninit"; 	// label for attr editor entry
+	this.sm = "-";			// symbol = symbol to be replaced in expr string = label in node for inputs
+							// for outputs, sm=input node's var name & you can't use it in the expr.
+	this.vl = 0.0; 			// value held by io if not connected
+	this.co = "-"			// for connected inputs only: varname of other node. 
 	this.isIn = true;   	// whether it's an input
 	var chs = Math.floor(Math.random()*10); 
 	var col = "";
@@ -111,10 +116,27 @@ function flIO() {
 }
 
 
+flIO.prototype.typeColor = function() {
+	res = "#888888"; 
+	switch (this.tp) { 
+		case FL_R: res = "#ff8888";  break; 
+		case FL_P: res = "#88ff88";  break; 
+		case FL_S: res = "#8888ff";  break;
+		case FL_V: res = "#ffff88";  break;
+		case FL_C: res = "#ff88ff";  break;
+		case FL_B: res = "#88ffff";  break;
+		case FL_L: res = "#aa8888";  break;
+	}
+	return res;
+}
+
+
+// at init, nothing is connected
 flIO.prototype.init = function(tp, varName, symbol, vlue, ioro, nodeID, indInNode, nx, ny) { 
 	this.tp = tp; 		
-	this.vn = varName; 
-	this.sm = symbol; 	
+	this.vn = varName;
+	this.sm=symbol;
+	this.sm = symbol; 
 	this.vl = vlue; 	
 	this.isIn = ioro;   
 	this.nID = nodeID;  
@@ -127,7 +149,8 @@ flIO.prototype.init = function(tp, varName, symbol, vlue, ioro, nodeID, indInNod
 flIO.prototype.initFromTemplate = function(tmpl, nodeID, nx, ny) {
 	this.tp = tmpl.tp; 		
 	this.vn = tmpl.vn; 	
-	this.sm = tmpl.sm; 	
+	if (tmpl.isIn) { this.sm = tmpl.sm; }
+	else { this.sm = tmpl.sm + nodeID; this.vn = this.sm; } 
 	this.vl = tmpl.vl; 	
 	this.isIn = tmpl.isIn;   
 	this.nID = nodeID; 
@@ -141,8 +164,9 @@ flIO.prototype.initFromTemplate = function(tmpl, nodeID, nx, ny) {
 flIO.prototype.copy = function(tmpl, nodeID, nx, ny) {
 	this.tp = tmpl.tp; 		
 	this.vn = tmpl.vn; 	
-	this.sm = tmpl.sm; 	
+	this.sm = tmpl.sm;
 	this.vl = tmpl.vl; 	
+	this.co = tmpl.co;
 	this.isIn = tmpl.isIn;  
 	this.nID = nodeID;  
 	this.nInd = tmpl.nInd; 
@@ -158,14 +182,26 @@ flIO.prototype.copy = function(tmpl, nodeID, nx, ny) {
 }
 
 
+flIO.prototype.outToString = function() {
+	var res = ""; // ugh use JSON ya dink. or just have graph do it all..
+	return res;
+}
+
+flIO.prototype.setFromString = function(str) {
+}
+
+
+
 // connect an input IO to an output IO of another node. 
 // outputs can never know whether they're connected, 
 // unless they track all their connections; why should they? 
-flIO.prototype.connect = function(oID, oInd, ox, oy) {
+flIO.prototype.connect = function(oID, oInd, ox, oy, vname) {
 	this.cID = oID; 
 	this.cInd = oInd; 
 	this.cnx = ox; 
 	this.cny = oy;
+	if (this.isIn) this.co = vname; // inputs need varnames
+	// set vl to varname of source node
 	this.con = true; 
 }
 
@@ -175,6 +211,8 @@ flIO.prototype.disconnect = function() {
 	this.cInd = -1; 
 	this.cnx = -100.0; 
 	this.cny = -100.0; 
+	this.co = "-";
+	// set val to default
 	this.con = false; 
 }
 
@@ -207,7 +245,7 @@ flIO.prototype.moveUpdate = function(nID, nx,ny) {
 // node size and spacing
 const FLIO_SZX = 22.0; // body size x
 const FLIO_SZY = 12.0; // body size y
-const FLIO_VSP = 38.0; // y spacing between rows of Is and Os
+const FLIO_VSP = 28.0; // y spacing between rows of Is and Os
 
 
 
@@ -218,9 +256,7 @@ flIO.prototype.center = function(selfOther) {
 	if (selfOther) { 
 		cx = this.nx + (this.nInd*(FLIO_SZX+2)); 
 		cy = this.ny;
-		if (this.isIn) { 
-			cx -= FLIO_SZX; // 0th input is "label", not shown 
-		} else {
+		if (!this.isIn) { 
 			cy += FLIO_VSP; // show outputs below inputs
 		}
 	} else {  // center of another node's output flIO
@@ -254,15 +290,9 @@ flIO.prototype.drawLink = function(theCx) {
 
 	if (!(this.isIn)) { return; } // draw only inputs
 	if (!(this.con)) { return; } // no connection to draw
-
-	switch (this.tp) { 
-		case FL_R: col = "#88ff88";  break; // number
-		case FL_S: col = "#ff8888";  break; // str
-		case FL_V: col = "#8888ff";  break; // vector4
-		case FL_L: col = "#ff88ff";  break; // list
-	}
+	var col = this.typeColor(); 
 	theCx.fillStyle = col; 
-	
+		
 	p1 = this.center(true);
 	c1x = p1[0] + FLIO_CNX;
 	c1y = p1[1];
@@ -290,18 +320,14 @@ flIO.prototype.drawLink = function(theCx) {
 const FLIO_TDX = 3.0; // text displacement  
 const FLIO_TDY = 10.0; 
 
+
 flIO.prototype.drawBody = function(theCx) { 
 	var cx, cy, pt;
 	pt = this.center(true); 
 	cx = pt[0]; 
 	cy = pt[1];
-
-	switch (this.tp) { 
-		case FL_R: theCx.fillStyle = "#88ff88";  break; // number
-		case FL_S: theCx.fillStyle = "#ff8888";  break; // str
-		case FL_V: theCx.fillStyle = "#8888ff";  break; // vector4
-		case FL_L: theCx.fillStyle = "#ff88ff";  break; // list
-	}
+	var col = this.typeColor(); 
+	theCx.fillStyle = col;
 	theCx.fillRect(cx, cy, FLIO_SZX, FLIO_SZY);
 	// label
 	theCx.font = "10px Arial";
@@ -311,29 +337,31 @@ flIO.prototype.drawBody = function(theCx) {
 }
 
 
-
+/*		res = '<div class="scrNodeButtonHolder">' ;
+		res += '<button onclick="theE.makeNode("'+this.tp+'");" class="scrNodeButton">';
+		res += this.name + '</button></div>';
+ */
 // attribute is an array: [name, value as string, nodeID, inputID ]
 flIO.prototype.getHTML = function() { 
 	var res = ""; 
 	if (this.isIn) { 
 		res = '<div class="conAttributeItem" onclick="atrSelect('+this.nID+','+this.nInd+'">';
-		res +='<div class="conAttributeNameSide">'+this.vn+':</div>';
-
   		// if it's connected, value not editable, and there is a disconnect button
   		if (this.con) { 
-			res += '<div class="conAttributeValueSide">'+this.vl;
-  			res += '--<button onclick="theE.disconnect(' + this.nID + ',' + this.nInd + ');" ';
-  			res += 'class="conAttributeDisconnectButton">disconnect</button>';		
+			// connected:     [      label:][node var name][disconnect]
+			res +='<div class="conAttributeNameSide">'+this.vn+':</div>';
+			res += '<div class="conAttributeValueSide">';
+  			res += '<div class="conAttributeDisconnectButton">';
+	  		res += '<button onclick="theE.disconnect(' + this.nID + ':' + this.nInd + ');" ';
+  			res += 'class="conAttributeDisconnectButton">'+this.co + ' -- (disc)</button></div></div>';		
   		} else {
+			// not connected: [       label:][inpt val    ][ update ]
+			res += '<div class="conAttributeNameSide">'+this.vn+':</div>';
 			res += '<div class="conAttributeValueSide">';
 			res += '<input class="conAttributeInputBox" value="' + this.vl; 
-	  		res += '" onkeyup="atrKeyIn(' + this.nID+','+this.nInd+')">';
+	  		res += '" onkeyup="atrKeyIn(' + this.nID+','+this.nInd+')"></div>';
 		}
-		res += '</div></div>'; 
-	} else {
-		res = '<div class="conAttributeItem"><div class="conAttributeNameSide">' + this.vn;
-		res += ':</div><div class="conAttributeValueSide"><input class="conAttributeOutputBox" value="' + this.vl; 
-	  	res += '"></div><div class="clear"></div></div>';
+		res += '<div class="clear"></div></div>'; 
 	}
 	return res; 
 }
@@ -363,10 +391,12 @@ flIO.prototype.getHTML = function() {
 
 
 function flNode() { 
-	this.tp = "uninit";    // short type name used to name variables & for io labels -- unique!
-	this.name = "uninit";  // name of this node or long template name for buttons
-	this.gp = -1;		   // group number 0math 4gl etc.
-	this.command = 'console.log("uninitialized node type");'  // string for code gen
+	this.tp = "uninit";    	// short type name used to name variables & for io labels -- unique!
+	this.lb = "uninit";  	// longer template name for buttons
+	this.vn = "-"; 			// tp+nodeID = variable name
+	this.gp = -1;		   	// group number 0math 4gl etc.
+	this.cm = 'console.log("uninitialized node type");'  // string for code gen
+	this.rs = 'uninitialized';// result of subbing inputs into 'cm'
 	this.posX = 100;		// postion on screen
 	this.posY = 100;
 	this.isSelected = false;// whether selected
@@ -379,8 +409,8 @@ function flNode() {
 
 // this fn inits a node as a template node, so no node ID or position
 // line format is 
-//?? tp name gp command otype inputType1 iName1 iLab1 defVal1 ... 
-// a node group number?
+//?? pt point 2 this.pg.point(X,Y); FL_P FL_R X X 0.5 FL_R Y Y 0.5 ...
+//?? symbol buttonLabel group command outputtype (inType1 sym1 attrlabel1 defaultval) 
 flNode.prototype.initTypeFromLine = function(line) {
 	var wds = line.split(' '); 
 	var ct = wds.length; 
@@ -389,9 +419,11 @@ flNode.prototype.initTypeFromLine = function(line) {
 	if ((ct-6)%4!=0) return -2; // odd number of input args
 	var inpct = (ct-6)/4; 
 	this.tp= wds[1];
-	this.name = wds[2];
+	this.lb = wds[2];
+	this.vn = "-";
 	this.gp = parseInt(wds[3]); // to int! 
-	this.command = wds[4];	
+	this.cm = wds[4];	
+	this.rs = "-";
 	this.posX = -1;
 	this.posY = -1;
 	this.isSelected = false; 
@@ -406,12 +438,12 @@ flNode.prototype.initTypeFromLine = function(line) {
 		io.init(tp, nm, lb, defVal, true, -1, i, -1,-1);
 		this.inputs.push(io);
 	}
-	this.wdt = (inpct * FLIO_SZX)-13.0;
-	if (this.wdt<50.0) { this.wdt = 50.0; }
+	this.wdt = (inpct * FLIO_SZX) +10;
+	if (this.wdt<80.0) { this.wdt = 80.0; }
 	// no default output value. 
 	var tp = wds[5];
 	var nm = this.tp;
-	var lb =  "temp err";
+	var lb = this.tp;
 	var io = new flIO();
 	io.init(tp, nm, lb, 0.0, false, -1, 0, -1,-1);	
 	this.outputs.push(io);
@@ -420,9 +452,9 @@ flNode.prototype.initTypeFromLine = function(line) {
 
 flNode.prototype.initFromTemplate = function(tpl, idnumber, x, y) {
 	this.tp = tpl.tp;
-	this.name = this.tp + idnumber;
+	this.vn = tpl.tp + idnumber;
 	this.gp = tpl.gp;
-	this.command = tpl.command;
+	this.cm = tpl.cm;
 	this.posX = x;
 	this.posY = y;
 	this.isSelected = false; 
@@ -443,8 +475,11 @@ flNode.prototype.initFromTemplate = function(tpl, idnumber, x, y) {
 
 flNode.prototype.copy = function(it, idnumber) {
 	this.tp = it.tp;
-	this.name = this.tp + idnumber;
-	this.command = it.command;
+	this.lb = it.lb;
+	this.vn = it.vn;
+	this.gp = it.gp;
+	this.cm = it.cm;
+	this.rs = it.rs;
 	this.posX = it.x+100; 
 	this.posY = it.y+100;
 	this.isSelected = false; 
@@ -464,7 +499,12 @@ flNode.prototype.copy = function(it, idnumber) {
 
 
 
-const FLND_SZY = 50.0; // node body ht
+flNode.prototype.setFromString = function(str) {
+	// return this?
+}
+
+
+const FLND_SZY = 40.0; // node body ht
 
 // draw the node's input connections
 flNode.prototype.drawInputCons = function(theCx) { 
@@ -492,16 +532,14 @@ flNode.prototype.drawBody = function(theCx) {
 	theCx.fillRect(x, y, this.wdt, FLND_SZY);
 	
 	// label
-	theCx.font = "14px Arial";
-	theCx.fillStyle = "#000000";
-	theCx.fillText(this.name, x+2, y+25);
 	theCx.font = "10px Arial";
 	theCx.fillStyle = "#000000";
-	theCx.fillText(this.command, x+2, y+35);
+	theCx.fillText(this.cm, x+2, y+23);
+	theCx.fillText(this.ord, x+this.wdt-12, y+38);
 
 	// drawing flIOs
 	len = this.inputs.length;  
-	for (i=1; i<len; i=i+1) { 
+	for (i=0; i<len; i=i+1) { 
 		this.inputs[i].drawBody(theCx); 
 	}
 	len = this.outputs.length;  
@@ -546,11 +584,13 @@ flNode.prototype.inputMoveTo = function(nd, nx, ny) {
 flNode.prototype.connect = function(inA, nodeB, outB) {
 	var res = "";
 
-	t1 = this.inputs[inA].tp; 
-	t2 = nodeB.outputs[outB].tp; 
+	var t1 = this.inputs[inA].tp; 
+	var t2 = nodeB.outputs[outB].tp; 
 	if (t1===t2) { 
-		//	flIO.prototype.connect = function(oID, oInd, ox, oy) {
-		this.inputs[inA].connect(nodeB.nodeID, outB, nodeB.posX, nodeB.posY); 
+		//	flIO.prototype.connect = function(oID, oInd, oVarName, ox, oy) {
+		this.inputs[inA].connect(nodeB.nodeID, outB, nodeB.posX, nodeB.posY, nodeB.vn); 
+		// outputs are not changed here; they could host many connections
+		// they are not changed by connections. 
 		res = "connection added";
 	} else { 
 		res = "connection failed: type mismatch";
@@ -563,6 +603,38 @@ flNode.prototype.connect = function(inA, nodeB, outB) {
 flNode.prototype.disconnect = function(inInd) {
 	this.inputs[inInd].disconnect(); 
 }
+
+
+flNode.prototype.allInputsAreOrdered= function() { 
+	var res = true; 
+	var ct = this.inputs.length; 
+	for (var i=0; i<ct; ++i) { 
+		if (this.inputs[i].con) {
+			var con = this.inputs[i].cID; 
+			if (this.inputs[con].ord<0) {
+				res = false
+			}
+		}
+	}
+	return res; 
+}
+
+
+flNode.prototype.setCommand = function() { 
+	var res = "";
+	var res = this.cm; // unaltered, original command string
+	var ct = this.inputs.length; 
+	for (var i=0; i<ct; ++i) {
+		var sm = this.inputs[i].sm; // thing to replace in expression
+		var sub = this.inputs[i].vl;
+		if (this.inputs[i].con) { 
+			sub = this.inputs[i].co; // thing to replace them with
+		}
+		res = res.replace(sm,sub); 
+	}
+	this.rs = res; 
+}
+
 
 
 
@@ -586,11 +658,10 @@ flNode.prototype.hitTest = function(mx, my) {
 	if (my<cy) { res = -1; }
 	if (mx>(cx+this.wdt)) { res = -1; }
 	if (my>(cy+FLND_SZY)) { res = -1; }
-
 	// if missed body, missed everything; stop now
 	if (res>0) { 
 		len = this.inputs.length;  
-		for (i=1; i<len; i=i+1) { //i=1! no labels box
+		for (i=0; i<len; i=i+1) { //i=1! no labels box
 			butRes = this.inputs[i].isInside(mx, my);
 			//console.log("button i"+i+" res:"+butRes);
 			if (butRes>0) {
@@ -611,12 +682,10 @@ flNode.prototype.hitTest = function(mx, my) {
 }
 
 
-
 flNode.prototype.setSelected = function(izzit) {
 	this.isSelected = izzit; 
 	//console.log(izzit);
 }
-
 
 
 flNode.prototype.getInputsHTML = function() {
@@ -630,29 +699,26 @@ flNode.prototype.getInputsHTML = function() {
 }
 
 
-
 flNode.prototype.getOutputsHTML = function() {
-	var len, str;
-	str = '';
-	len = this.outputs.length;  
-	for (i=0; i<len; i=i+1) { 
-		str += this.outputs[i].getHTML(); 
-	}
-	return str; 
+	this.setCommand();
+	var res = '<div class="conAttributeOutput">var ' + this.vn + '=' + this.rs + '</div>';
+	return res; 
 }
-
 
 
 flNode.prototype.getTypeButton = function() {
 	var res = '';
 	if (this.tp.length>0) { 
 		res = '<div class="scrNodeButtonHolder">' ;
-		res += '<button onclick="theE.makeNode("'+this.tp+'");" class="scrNodeButton">';
+		res += '<button onclick="theE.makeNode("'+this.lb+'");" class="scrNodeButton">';
 		res += this.name + '</button></div>';
 	}
 	return res; 
 }
 
+
+flNode.prototype.getSaveString = function() { // json? ok
+}
 
 
 
@@ -670,6 +736,7 @@ function flGraph(context) {
 	this.cx = context; 
 	this.cx.lineWidth =2;
 	this.nodes = []; 
+	this.execOrder = []; 
 	this.selectedNode = -1; 
 	this.nextX = 120.0; // where the next node will be made
 	this.nextY = 120.0;
@@ -723,10 +790,18 @@ flGraph.prototype.makeNode = function(otherNode) {
 	this.setMakeSite(this.nextX +5.0, this.nextY+60.0);
 	this.selectedNode = ind; 
 	this.redraw(); 
+	this.updateEvalOrder();
 	return "made '"+ otherNode.tp + "' node";
 }
 
 flGraph.prototype.deleteNode = function() {
+	// ugh. all my precious indices. 
+	// so, selectedNode is the one to kill.
+	// for all connections, if the cID>selectedNode, --
+	// for all node ID's, if etc. 
+	// alternative is checking checking whether a node is marked "deleted"
+	
+	
 }
 
 flGraph.prototype.duplicateNode = function(node) {
@@ -735,6 +810,7 @@ flGraph.prototype.duplicateNode = function(node) {
 	nn.copy(otherNode, ind); 
 	this.nodes.push(nn);
 	this.selectedNode = ind; 
+	this.updateEvalOrder();
 	this.redraw(); 
 }
 
@@ -842,15 +918,74 @@ flGraph.prototype.getOutputsHTML = function() {
 }
 
 
+flGraph.prototype.updateEvalOrder = function() {
+	var res = false; 
+	var nextCmd = 0;
+	var ct = this.nodes.length;  
+	var i; 
+	// init all eval-order vals to -1 
+	for (i=0; i<ct; ++i) { 
+		this.nodes[i].ord = -1; 
+	}
+	// nodes w/ no inputs
+	for (i=0; i<ct; ++i) { 
+		if (this.nodes[i].inputs.length<1) { 
+			this.nodes[i].ord = nextCmd;
+			++nextCmd;
+		} 
+	}
+	var notDone = true; 
+	var sanityCtr = 0; 
+	while (notDone) {
+		var hadProgress = false; 
+		for (i=0; i<ct; ++i) { 
+			var n = this.nodes[i];
+			
+			if (n.ord<0) { // not already ordered
+				var isOrdered = true;
+				var inpCt = n.inputs.length; 
+				for (var j=0; j<inpCt; ++j) { 
+					if (n.inputs[j].con) {
+						var inNd = n.inputs[j].cID;
+						if (this.nodes[inNd].ord<0) {
+							isOrdered = false; 
+							// has input not already ordered; skip
+						}
+					}
+				}
+				if (isOrdered) { 
+					this.nodes[i].ord = nextCmd; 
+					++nextCmd;
+					hadProgress = true; 
+				}
+			}
+		}
+		sanityCtr = sanityCtr+1;
+		if ((hadProgress===false) || (nextCmd>=ct) || (sanityCtr>=ct)) { 
+			notDone = false;
+		}
+	}
+	if (nextCmd<ct) 
+		return false; 
+	for (i=0; i<ct; ++i) {
+		var ord = this.nodes[i].ord; 
+		this.execOrder[ord] = i; 
+	}
+}
+
+
 
 // need inputNode, input ind, outut node, out ind
 flGraph.prototype.connect = function(iID, iInd, oID, oInd) {
-	return this.nodes[iID].connect(iInd, this.nodes[oID], oInd); 
+	var msg = this.nodes[iID].connect(iInd, this.nodes[oID], oInd); 
+	this.updateEvalOrder();
+	return msg; 
 }
 
 
 flGraph.prototype.disconnect = function(nodeID, inputID) {
 	this.nodes[nodeID].inputs[inputID].disconnect(); 
+	this.updateEvalOrder();
 }
 
 
@@ -876,43 +1011,23 @@ flGraph.prototype.moveNode = function(hit, nx, ny) {
 }
 
 
-
-flGraph.prototype.updateEvalOrder = function() {
-	var res = false; 
-	var nextCmd = 0;
-	var ct = this.nodes.length;  
-	var i; 
-	// init all eval-order vals to -1 
-	for (i=0; i<ct; ++i) { 
-		if (this.nodes[i].inputs.length ===0) { 
-			// nodes with no input, just set to not-1 right off
-			this.nodes[i].ord = nextCmd; 
-			++nextCmd; 
-		} else {
-			// else gotta sort
-			this.nodes[i].ord = -1; 
-		}
-	}
-	/*
-	var notDone = false; 
-	while (notDone) {
-		var hadProgress = false; 
-		for (i=0; i<ct; ++i) { 
-		  //  
-			// nodes with inputs, if all inputs are not-1, set to next index
-			// repeat until none are set in a loop
-			// if any are -1, there's a loop and failure
-		}
-		*/	
-	// nodes with inputs, if all inputs are not-1, set to next index
-	// repeat until none are set in a loop
-	// if any are -1, there's a loop and failure
-}
-
-
-
-
 flGraph.prototype.evaluate = function() {
+	var res = "";
+	var i, ln; 
+	ln = this.nodes.length;
+	for (i=0; i<ln; ++i) {
+		var cmd = this.nodes[i].command;
+		// for each input
+			// if connected
+				// get input's source node
+				//   get source's var name
+				//  -- should be stored in the flIO!! IS NOT ATM
+			// else make symbol a string literal version of input.vl!!
+			// get input's symbol 
+			// replace instances of varname w symbol
+		res += "var " + this.name + "=" + cmd;
+	}
+	return res; 
 }
 
 
