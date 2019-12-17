@@ -345,7 +345,7 @@ flIO.prototype.drawBody = function(theCx) {
 flIO.prototype.getHTML = function() { 
 	var res = ""; 
 	if (this.isIn) { 
-		res = '<div class="conAttributeItem" onclick="atrSelect('+this.nID+','+this.nInd+'">';
+		res = '<div class="conAttributeItem">';
   		// if it's connected, value not editable, and there is a disconnect button
   		if (this.con) { 
 			// connected:     [      label:][node var name][disconnect]
@@ -358,7 +358,7 @@ flIO.prototype.getHTML = function() {
 			// not connected: [       label:][inpt val    ][ update ]
 			res += '<div class="conAttributeNameSide">'+this.vn+':</div>';
 			res += '<div class="conAttributeValueSide">';
-			res += '<input class="conAttributeInputBox" value="' + this.vl; 
+			res += '<input class="conAttributeInputBox" id="ioIn' +this.nID+this.nInd+ '" value="' + this.vl; 
 	  		res += '" onkeyup="atrKeyIn(' + this.nID+','+this.nInd+')"></div>';
 		}
 		res += '<div class="clear"></div></div>'; 
@@ -470,13 +470,14 @@ flNode.prototype.initFromTemplate = function(tpl, idnumber, x, y) {
 		this.outputs.push(io);
 	}
 	this.wdt = tpl.wdt;
+	this.setCommand();
 }
 
 
 flNode.prototype.copy = function(it, idnumber) {
 	this.tp = it.tp;
 	this.lb = it.lb;
-	this.vn = it.vn;
+	this.vn = tpl.tp + idnumber;
 	this.gp = it.gp;
 	this.cm = it.cm;
 	this.rs = it.rs;
@@ -495,6 +496,7 @@ flNode.prototype.copy = function(it, idnumber) {
 		this.outputs.push(io);
 	}
 	this.wdt = tpl.wdt;
+	this.setCommand();
 }
 
 
@@ -632,7 +634,7 @@ flNode.prototype.setCommand = function() {
 		}
 		res = res.replace(sm,sub); 
 	}
-	this.rs = res; 
+	this.rs = " var " + this.vn + " = " + res; 
 }
 
 
@@ -701,20 +703,10 @@ flNode.prototype.getInputsHTML = function() {
 
 flNode.prototype.getOutputsHTML = function() {
 	this.setCommand();
-	var res = '<div class="conAttributeOutput">var ' + this.vn + '=' + this.rs + '</div>';
+	var res = '<div class="conAttributeOutput">' + this.rs + '</div>';
 	return res; 
 }
 
-
-flNode.prototype.getTypeButton = function() {
-	var res = '';
-	if (this.tp.length>0) { 
-		res = '<div class="scrNodeButtonHolder">' ;
-		res += '<button onclick="theE.makeNode("'+this.lb+'");" class="scrNodeButton">';
-		res += this.name + '</button></div>';
-	}
-	return res; 
-}
 
 
 flNode.prototype.getSaveString = function() { // json? ok
@@ -740,7 +732,6 @@ function flGraph(context) {
 	this.selectedNode = -1; 
 	this.nextX = 120.0; // where the next node will be made
 	this.nextY = 120.0;
-	this.t = 0.0; 
 	// the graph returns a program
 	this.header = ""; // this part comes before that program
 	this.footer = ""; // after
@@ -816,13 +807,13 @@ flGraph.prototype.duplicateNode = function(node) {
 
 
 
-flGraph.prototype.edNew = function() { return "clear"; }
-flGraph.prototype.edSave = function() { return "save"; }
-flGraph.prototype.edLoad = function() {return "context"; }
+flGraph.prototype.edNew = function() { return "edNew"; }
+flGraph.prototype.edSave = function() { return "edSave"; }
+flGraph.prototype.edLoad = function() {return "edLoad"; }
 
-flGraph.prototype.edImport = function() { return "load";}
-flGraph.prototype.edContext = function() { return "import"; }
-flGraph.prototype.edEvaluate = function() { return "exec"; }
+flGraph.prototype.edContext = function() { return "edContext";}
+flGraph.prototype.edImport = function() { return "edImport"; }
+flGraph.prototype.edEvaluate = function() { return this.evaluate(); }
 
 flGraph.prototype.setDefaults = function() { return "setDefaults"; }
 
@@ -991,6 +982,7 @@ flGraph.prototype.disconnect = function(nodeID, inputID) {
 
 flGraph.prototype.atrKeyIn = function(nID, inp, val) { 
 	this.nodes[nID].inputs[inp].vl = val; 
+	this.nodes[nID].setCommand(); 
 }
 
 flGraph.prototype.atrSelect = function(nID, inp) { 
@@ -1010,36 +1002,27 @@ flGraph.prototype.moveNode = function(hit, nx, ny) {
 	}
 }
 
-
+// node command has inputs pasted in as connections are made... 
 flGraph.prototype.evaluate = function() {
 	var res = "";
-	var i, ln; 
-	ln = this.nodes.length;
-	for (i=0; i<ln; ++i) {
-		var cmd = this.nodes[i].command;
-		// for each input
-			// if connected
-				// get input's source node
-				//   get source's var name
-				//  -- should be stored in the flIO!! IS NOT ATM
-			// else make symbol a string literal version of input.vl!!
-			// get input's symbol 
-			// replace instances of varname w symbol
-		res += "var " + this.name + "=" + cmd;
+	var ln = this.nodes.length;
+	var cmdOrd = 0; 
+	var i=0; 
+	var loopCt = 0; 
+	var notDone = true; 
+	while (notDone) { 
+		var ord = this.nodes[i].ord;
+		if (ord===-1) { notDone=false;}
+		if (cmdOrd>=ln) { notDone=false;}
+		if (loopCt>=ln) { notDone = false; }
+		if (ord === cmdOrd) { 
+			res += this.nodes[i].rs; // keep exec complexities in the node defn, ?
+			++cmdOrd; 
+		}
+		++i; 
+		if (i>=ln) { i=0; ++loopCt; }
 	}
 	return res; 
 }
-
-
-flGraph.prototype.setT = function(nt) { 
-	this.t = nt; 
-}
-
-
-flGraph.prototype.update = function() {
-	this.t += 0.05;
-	this.evaluate(); 
-}
-
 
 

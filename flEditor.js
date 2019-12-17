@@ -46,6 +46,7 @@ function flEditor(aDoc, aCanvas) {
     this.inputsDiv = aDoc.getElementById("inputsControls");
     this.outputsDiv = aDoc.getElementById("outputsControls");
     
+    this.xmlPlace = aDoc.getElementById("XMLpool"); 
     this.ready = true; 
 }
 
@@ -63,12 +64,8 @@ flEditor.prototype.initStandardNodes = function() {
 	//?? sm gp command otype inputType1 iName1 iSymbol defVal1 ... 
 	// sure great lets change them all again! 
 	// type 0's math
-	var nd = new flNode(); 
-	nd.initTypeFromLine("//?? ad add 0 (n1+n2); FL_R FL_R Input_1 n1 0 FL_R Input_2 n2 0"); 
-	this.templs.push(nd); 
-	
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? rn random 0 Math.random(); FL_R"); 
+	nd.initTypeFromLine("//?? rdm random 0 Math.random(); FL_R"); 
 	this.templs.push(nd); 
 	
 	nd = new flNode(); 
@@ -100,7 +97,7 @@ flEditor.prototype.initStandardNodes = function() {
 	this.templs.push(nd); 
 
 	nd = new flNode(); 
-	nd.initTypeFromLine("//?? ex eponent 0 Math.pow(A,B); FL_R FL_R mantissa M 1.0 FL_R expn O 1.0 out FL_R ex 0"); 
+	nd.initTypeFromLine("//?? ex exponent 0 Math.pow(A,B); FL_R FL_R mantissa M 1.0 FL_R expn O 1.0 out FL_R ex 0"); 
 	this.templs.push(nd);
 
 	// 1 control- buuut what's the output type? bah.
@@ -207,10 +204,9 @@ flEditor.prototype.setMakerButtons = function(setNumber) {
 			var bd = document.createElement("DIV"); 
 			bd.className = "scrNodeButtonHolder";
 			var but = document.createElement("BUTTON");
-			var st = this.templs[i].tp; 
-			but.innerText = st;
+			but.innerText = this.templs[i].lb;
 			but.className = "scrNodeButton";
-			but.onclick = this.callbackmaker(st); 
+			but.onclick = this.callbackmaker(this.templs[i].tp); 
 			bd.appendChild(but);
 			this.makersDiv.appendChild(bd);
 		}
@@ -240,16 +236,16 @@ flEditor.prototype.deleteNode = function() {
 
 // main editor button set callbacks
 flEditor.prototype.edNew = function() { 
-	this.theText.innerHTML = this.theG.edClear(); 
+	this.theText.innerHTML = this.theG.edNew(); 
 }
 
 flEditor.prototype.edSave = function() {
-	this.theText.innerHTML = this.theG.getTextForSave(); 
+	this.theText.innerHTML = this.theG.edSave(); 
 }
 
 flEditor.prototype.edLoad = function() {
 	var txt = "";
-	this.theText.innerHTML = this.theG.setFromSaveText(txt); 
+	this.theText.innerHTML = this.theG.edLoad(txt); 
 }
 
 
@@ -263,7 +259,7 @@ flEditor.prototype.edImport = function() {
 }
 
 flEditor.prototype.edEvaluate = function() {
-	this.theText.innerHTML = this.theG.edEvaluate(); 
+	this.xmlPlace.innerHTML = this.theG.edEvaluate(); 
 }
 
 
@@ -281,8 +277,9 @@ flEditor.prototype.viewIO = function(nodeID, inputID) {
 
 flEditor.prototype.atrKeyIn = function(nodeID, inpInd) { 
 	var theInpName = "ioIn" + nodeID + inpInd; 
-	var theVal = aDoc.getElementById(theInpName).value;
-	this.theGraph.atrKeyIn(nodeId, inpInd, theVal); 
+	var theVal = this.theDoc.getElementById(theInpName).value;
+	this.theG.atrKeyIn(nodeID, inpInd, theVal); 
+	this.outputsDiv.innerHTML = this.theG.getOutputsHTML();
 }
 
 flEditor.prototype.atrSelect = function(nodeID, inpInd) { 
