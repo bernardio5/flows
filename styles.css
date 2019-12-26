@@ -85,14 +85,14 @@ body {
    background:#999999;
 }
 
-/* 3 blocks: buttons, nodes, attributes, XML */
+/* stack of blocks: buttons, dropdown, messages/feedback, attributes/textblock*/
 .conBlockContainer { 
    float: top;
    width: 100%;
    padding: 0px 3px 0px 0px;
 }
 
-/* file buttons: two columns, yellow */
+/* "file" buttons: two columns, yellow */
 .conFileLeftButtonColumn { 
    float: left;
    width: 50%;
@@ -139,26 +139,11 @@ body {
    background: #ffff88;
 }
 
-/* xml editable text */
-.conXMLContainer { 
-   width: 100%;
-   height: 400px;
-   padding:0px 0px 0px 0px;
-}
-
+/* message txtbox for a little feedback */
 .conMessages {
    width: 99%;
-   height: 5%;
+   height: 20px;
    background: #998888;
-   rows: 15;
-   border-style: none;
-   font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;   
-}
-
-.conXMLPool {
-   width: 98%;
-   height: 95%;
-   background: #cccccc;
    rows: 15;
    border-style: none;
    font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;   
@@ -216,4 +201,21 @@ body {
    href: "javascript:;";
    border-style: none;
    font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;   
+}
+
+/* textblocks are just string inputs, but in a secial node
+ * for the sake of UX */
+.conTextBlockItem {
+   float: top;
+   width: 100%;
+   padding: 0px 0px 0px 0px;
+}
+
+/* textblocks are just string inputs, but in a secial node
+ * for the sake of UX */
+.conTextBlock {
+   width: 100%;
+   height: 250px;
+   background: "xccccff";
+   text-align:left;
 }

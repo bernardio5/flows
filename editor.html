@@ -23,7 +23,6 @@
     aCv.addEventListener('mouseup', function(evt) { theE.mouseUp(evt); } ); 
     aCv.addEventListener('mousedown', function(evt) { theE.mouseDown(evt); } ); 
     aCv.addEventListener('selectNodes', function(evt) { theE.setMakerButtons(evt); } ); 
-    // setInterval(function() { theE.redraw(theCx); }, 200); 
     theE.redraw(); 
   }
 
@@ -67,9 +66,6 @@
             <div class="conFileLeftButtonHolder">
               <button onclick="theE.edSave();" class="conFileButton">Save</button>
               <div class="clear"></div></div>
-            <div class="conFileLeftButtonHolder"> 
-              <button onclick="theE.edContext();" class="conFileButton">Context</button>
-            </div>
             <div class="clear"></div>
       </div>
 
@@ -77,13 +73,9 @@
               <div class="conFileRightButtonHolder"><!-- yellow buttons rhs -->
                 <button onclick="theE.edLoad();" class="conFileButton">Load</button>
               </div>
-              <div class="conFileRightButtonHolder">
-                <button onclick="theE.edImport();" class="conFileButton">Import</button></button>
-              </div>
               <div class="conFileRightButtonHolder"> 
                  <button onclick="theE.edEvaluate();" class="conFileButton">Eval</button>
-              </div>
-              
+              </div>              
               <div class="clear"></div>  
       </div>	
       <div class="clear"></div>
@@ -95,10 +87,15 @@
       </div>
       <div class="clear"></div>
     </div>
- 
+     <div class="conBlockContainer">
+      <div class="conXMLContainer"><!-- messages -->
+        <div class="conMessages" id="messages">messages go here</div>
+      </div>
+    </div>
+
     <div class="conBlockContainer">
       <div class="conAttributeItem">
-             <div class="conAttributeValueSide">
+             <div class="conAttributeNameSide">
                 Inputs:
               </div>
               <div class="clear"></div>
@@ -106,7 +103,7 @@
       <div id="inputsControls"> <!-- input attrs list here -->
       </div>
       <div class="conAttributeItem">
-             <div class="conAttributeValueSide">
+             <div class="conAttributeNameSide">
                 Output:
               </div>
               <div class="clear"></div>
@@ -116,12 +113,6 @@
       <div class="clear"></div>
     </div>
     <div class="clear"></div>
-    <div class="conBlockContainer">
-      <div class="conXMLContainer"><!-- messages and text block-->
-        <div class="conMessages" id="messages">messages go here</div>
-        <textarea class="conXMLPool" id="XMLpool" cols="30">XML editing area</textarea>
-      </div>
-    </div>
   </div> <!--controls-->
 </div><!-- container -->
 
