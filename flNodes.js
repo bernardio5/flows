@@ -129,12 +129,16 @@ flIO.prototype.typeColor = function() {
 flIO.prototype.init = function(tp, varName, symbol, vlue, ioro, nodePtr, indInNode) { 
 	this.tp = tp; 		
 	this.vn = varName;
-	this.sm=symbol;
 	this.sm = symbol; 
 	this.vl = vlue; 	
 	this.isIn = ioro;   
 	this.iNode = nodePtr;  
 	this.iInd = indInNode; 
+}
+
+//?? ex exponent 0 Math.pow(A,B); FL_R  FL_R mantissa M 1.0   FL_R expn O 1.0 "); 
+flNode.prototype.giveTemplateString = function() { // as above, so below
+	var res = " " + this.tp + " "+ this.vn + " " + this.sm + " " + this.vl;
 }
 
 // a little more info for IOs in nodes in the graph.
@@ -401,36 +405,35 @@ function flNode() {
 }
 
 
-/////////////////////////////////// template - making functions don't set node ID or position
+/////////////////////////////////// template nodes are type exemplars; no nodeID, position, connections
 // standard nodes have 0 or more inputs, 2 outputs (ref and code), and a command that sets a variable.
-// this fn inits a node as a template node, so no node ID or position
 // line format is 
-//?? pt point 2 this.pg.point(X,Y); FL_P FL_R X X 0.5 FL_R Y Y 0.5 ...
-//?? symbol buttonLabel group command outputtype (inType1 sym1 attrlabel1 defaultval) 
+//?? pt point 0 2 this.pg.point(X,Y); FL_P FL_R X X 0.5 FL_R Y Y 0.5 ...
+//?? symbol buttonLabel spc group command outputtype (inType1 sym1 attrlabel1 defaultval) 
 flNode.prototype.initTypeFromLine = function(line) {
 	var wds = line.split(' '); 
 	var ct = wds.length; 
 	if (ct<6) return -1; // not enough arguments
 	if (!strEq(wds[0], "//??")) return -1; // no leading //??
-	if ((ct-6)%4!=0) return -2; // odd number of input args
-	var inpct = (ct-6)/4; 
+	if ((ct-7)%4!=0) return -2; // odd number of input args
+	var inpct = (ct-7)/4; 
 	this.tp= wds[1];
 	this.lb = wds[2];
 	this.vn = "-";
-	this.gp = parseInt(wds[3]); // to int! 
-	this.cm = wds[4];	
+	this.gp = parseInt(wds[4]); // to int! 
+	this.cm = wds[5];	
 	this.rs = "-";  // result of subbing inputs into the cm string
 	this.posX = -1;
 	this.posY = -1;
 	this.isSelected = false; 
 	this.nodeID = -1;
-	this.spc = 0; // no specialness
+	this.spc = parseInt(wds[3]); 
 	// find the entry that contains 'out'-> outInd => #args= (outInd / 3)-1
 	for (var i=0; i<inpct; ++i) { 
-		var tp = wds[(i*4)+6]; 
-		var nm = wds[(i*4)+7]; 
-		var lb = wds[(i*4)+8]; 
-		var defVal = wds[(i*4)+9];
+		var tp = wds[(i*4)+7]; 
+		var nm = wds[(i*4)+8]; 
+		var lb = wds[(i*4)+9]; 
+		var defVal = wds[(i*4)+10];
 		var io = new flIO();
 		io.init(tp, nm, lb, defVal, true, this, i);
 		this.inputs.push(io);
@@ -438,114 +441,35 @@ flNode.prototype.initTypeFromLine = function(line) {
 	this.wdt = (inpct * FLIO_SZX) +10;
 	if (this.wdt<80.0) { this.wdt = 80.0; }
 	// no default output value. 
-	var tp = wds[5];
+	var tp = wds[6];
 	var nm = this.tp;
 	var lb = this.tp;
 	//flIO.prototype.init = function(tp, varName, symbol, vlue, iisInput, nodePtr, indInNode) { 
-	this.outputs[0].init(tp, nm, lb, 0.0, false, this, 0);	// ref output
-}
-
-flNode.prototype.initAsCopy = function(newId) { // that is, a "copy"-type node template
-	this.tp= "cp";   	this.lb = "copy";
-	this.vn = "-";  	this.gp = 1; 
-	this.cm = "L=R;";	this.rs = "-";
-	this.posX = -1;		this.posY = -1;
-	this.isSelected = false; 	this.nodeID = -1;
-	this.spc = 1; // => node that does not output a var? or just copy?
-	var io = new flIO(); 	io.init(FL_X, "LHS", "L", 0, true, null, 0);		this.inputs.push(io);
-	io = new flIO(); 		io.init(FL_X, "RHS", "R", 0, true, null, 1);		this.inputs.push(io);
-	this.wdt = 50;
-}
-
-flNode.prototype.initAsArraySet = function() {
-	this.tp= "arS";   	this.lb = "arraySet";
-	this.vn = "-";  	this.gp = 1; 
-	this.cm = "A[I]=C;";	this.rs = "-";
-	this.posX = -1;		this.posY = -1;
-	this.isSelected = false; 	this.nodeID = -1;
-	this.spc = 1; // => node that does not output a var? or just copy?
-	var io = new flIO(); io.init(FL_X, "array", "A", 0, true, null, 0);	this.inputs.push(io);
-	io = new flIO(); 	io.init(FL_R, "index", "I", 0, true, null, 1);	this.inputs.push(io);
-	io = new flIO(); 	io.init(FL_X, "newValue", "C", 0, true, null, 2);this.inputs.push(io);
-}
-
-flNode.prototype.initAsWhile = function() {
-	this.tp= "whl";   	this.lb = "while";
-	this.vn = "-";  	this.gp = 1; 
-	this.cm = "while(C!=0){B}";	this.rs = "-";
-	this.posX = -1;		this.posY = -1;
-	this.isSelected = false; 	this.nodeID = -1;
-	this.spc = 1; // => node that does not output a var? or just copy?
-	var io = new flIO(); io.init(FL_R, "condition", "C", 0, true, null, 0);this.inputs.push(io);
-	io = new flIO(); io.init(FL_S, "loopBody", "B", 0, true, null, 1);		this.inputs.push(io);
-}
-
-flNode.prototype.initAsFor = function() {
-	this.tp= "for";   	this.lb = "for";
-	this.vn = "-";  	this.gp = 1; 
-	this.cm = "for(var i=I;i<L;i+=C){B}";	this.rs = "-";
-	this.posX = -1;		this.posY = -1;
-	this.isSelected = false; 	this.nodeID = -1;
-	this.spc = 2; // => big long special thing just for for's, whadda mess
-	var io = new flIO(); io.init(FL_R, "init", "I", 0, true, null, 0);		this.inputs.push(io);
-	io = new flIO(); io.init(FL_R, "limit", "L", 5, true, null, 1);			this.inputs.push(io);
-	io = new flIO(); io.init(FL_R, "inc", "C", 1, true, null, 2);			this.inputs.push(io);
-	io = new flIO(); io.init(FL_S, "loopBody", "B", 0, true, null, 3);		this.inputs.push(io);
-	this.outputs[0].init(FL_R, "counter", "j", ";", false, null, 0);
-	this.wdt = 110;
-}
-
-flNode.prototype.initAsTextBlock = function() {
-	this.tp= "txt";   	this.lb = "textblock";
-	this.vn = "...";  	this.gp = 3; 
-	this.cm = "S";		this.rs = "-";
-	this.posX = -1;		this.posY = -1;
-	this.isSelected = false; 	this.nodeID = -1;
-	this.spc = 3; // => is text block, just output a string, but make a big box in the attr editor.
-	var io = new flIO(); io.init(FL_S, "content", "S", 0, true, null, 0);	this.inputs.push(io);
-	this.outputs[0].init(FL_S, "same", "SO", "S", false, null, 0);
-	this.wdt = 50;
-}
-
-flNode.prototype.initAsCustom = function() { // customs use arg0, a str, as the command
-	this.tp= "cf";   	this.lb = "customFunc";
-	this.vn = "-";  	this.gp = 3; 
-	this.cm = "C(A,B,C)";	this.rs = "-";
-	this.posX = -1;		this.posY = -1;
-	this.isSelected = false; 	this.nodeID = -1;
-	this.spc = 4; // => use first input str as command
-	var io = new flIO();io.init(FL_S, "custom", "C", "A+B+C;", true, null, 0);	this.inputs.push(io);
-	io = new flIO(); io.init(FL_R, "arg1", "A", 5, true, null, 1);			this.inputs.push(io);
-	io = new flIO(); io.init(FL_R, "arg2", "B", 1, true, null, 2);			this.inputs.push(io);
-	io = new flIO(); io.init(FL_R, "arg3", "C", 0, true, null, 3);			this.inputs.push(io);
-	this.outputs[0].init(FL_R, "customFunc", "cf", ";", false, null, 0);
-	this.wdt = 110;
-}
-
-flNode.prototype.initAsImporter = function() {
-	this.tp= "imp";   	this.lb = "importer";
-	this.vn = "-";  	this.gp = 3; 
-	this.cm = "import(A);";		this.rs = ";";
-	this.posX = -1;		this.posY = -1;
-	this.isSelected = false; 	this.nodeID = -1;
-	this.spc = 5; // set output by reading in file specified by input. do this at evaluation 
-	var io = new flIO(); io.init(FL_S, "path", "P", 0, true, null, 0);		this.inputs.push(io);
-	this.outputs[0].init(FL_S, "imp", "im", "-", true, null, 0);
-}
-
-flNode.prototype.initAsExporter = function() {
-	this.tp= "exp";   	this.lb = "exporter";
-	this.vn = "-";  	this.gp = 3; 
-	this.cm = "export(P,C);";	this.rs = "-";
-	this.posX = -1;		this.posY = -1;
-	this.isSelected = false; 	this.nodeID = -1;
-	this.spc = 6; // no ouput! the terminal node type; exports the code; is the goal object 
-	var io = new flIO(); io.init(FL_S, "path", "P", "-", true, null, 0);	this.inputs.push(io);
-	io = new flIO(); io.init(FL_S, "content", "C", "-", true, null, 1);	this.inputs.push(io);
+	
+	switch (this.spc) { // some nodes get treated differently
+		//case 0: default; 
+		case 1: break; // some guys don't make var refs 
+		// case 2: // for loops output a counter
+		// case 3: txt block: as default
+		// case 4: // custom block: input 0 is a string that is the command. 
+		//case 5: // importer-- this.rs = file.read(input[0].vl); 
+		// case 6: // exporter-- write a file, no output into graph! 
+		default: this.outputs[0].init(tp, nm, lb, 0.0, false, this, 0);	break;//
+	}
 }
 
 
-////////////////////////////// functions that init nodes for the graph
+flNode.prototype.giveTemplateString = function() { // make a string that round-trips with initTypeFromLine
+	var res = "";
+	res = res + "//?? " + this.tp + " "+ this.lb + " " + this.spc + " " + this.gp;
+	res = res + " " + this.cm + " "+  this.outputs[0].tp;
+	for (var i=0; i<this.inputs.length; ++i) { 
+		res = res + this.inputs[i].giveTemplateString();
+	}
+}
+
+
+////////////////////////////// graph nodes are made and manipulated by the user; can be connected.
 flNode.prototype.initFromTemplate = function(tpl, idnumber, x, y) {
 	this.tp = tpl.tp;
 	this.vn = tpl.tp + idnumber;
@@ -567,8 +491,9 @@ flNode.prototype.initFromTemplate = function(tpl, idnumber, x, y) {
 	this.evaluate();
 }
 
+
 flNode.prototype.copy = function(it, idnumber) { // that is, make this a copy of it
-	this.tp = it.tp;
+	this.tp = it.tp;// hey, is this allocated? cause it needs to be. 
 	this.lb = it.lb;
 	this.vn = it.tp + idnumber;
 	this.gp = it.gp;
@@ -594,7 +519,7 @@ flNode.prototype.copy = function(it, idnumber) { // that is, make this a copy of
 }
 
 
-flNode.prototype.giveSaveString = function() {
+flNode.prototype.giveSaveNodeString = function() {
 	var res = "node ";
 	res = this.vn + " " + this.tp + " " + this.lb + " " + this.gp + " ";
 	res = res + this.cm + " " + this.posX + " " + this.posY + " " + this.nodeID + " ";
@@ -930,6 +855,25 @@ flGraph.prototype.edNew = function() {
 	this.redraw(); 
 	return "edNew"; 
 }
+
+
+
+
+flGraph.prototype.loadNodes = function() {
+	// get file name
+	// provide callback
+	// start load. 
+}
+
+flGraph.prototype.loadNodesCallback= function() {
+	// cut file into lines
+	// first line is #type space #nodes
+	// for each type, give line to create node type
+	// for each node, give line to create node
+}
+
+
+
 
 flGraph.prototype.edSave = function() { return "edSave"; }
 flGraph.prototype.edLoad = function() { return "edLoad"; }
