@@ -36,7 +36,7 @@ function flEditor(aDoc, aCanvas) {
 	this.startHit = -1; 
 
 	var i; // can you even make any? huh? 
-	for (i=0; i<3; i=i+1) { 
+	for (i=0; i<3; i=i+2) { 
 		this.theG.makeNode(this.templs[i])
 	}
 
@@ -51,16 +51,6 @@ function flEditor(aDoc, aCanvas) {
     this.ready = true; 
 }
 
-/* constants: flIO data types; this.tp is one of these
-const FL_N = "FL_N"; // null/error/uninit
-const FL_R = "FL_R"; // number
-const FL_P = "FL_P"; // proportion  prBase
-const FL_S = "FL_S"; // str
-const FL_V = "FL_V"; // vector4
-const FL_C = "FL_C"; // color "xrrggbb"
-const FL_B = "FL_B"; // a beat loop?
-const FL_L = "FL_RL";// list of R's
-*/
 
 flEditor.prototype.addTemplate = function(str) {
 	var nd = new flNode(); 
@@ -69,59 +59,62 @@ flEditor.prototype.addTemplate = function(str) {
 }
 
 
-flEditor.prototype.initStandardNodes = function() { 
-	this.addTemplate("//?? rdm random 0 0 Math.random(); FL_R"); 
-	this.addTemplate("//?? t seconds 0 0 mainDate.getTime(); FL_R"); // requires presence of var mainDate=new Date(); 
-	this.addTemplate("//?? fr frame 0 0 frameNumber; FL_R"); 
-	this.addTemplate("//?? li linear 0 0 ((A*B)+C); FL_R FL_R A A 1.0 FL_R B B 1.0 FL_R C C 1.0"); 
-	this.addTemplate("//?? sn sine 0 0 A*Math.sin(T); FL_R FL_R amplitude A 1.0 FL_R T T 0.0"); 
-	this.addTemplate("//?? cs cosine 0 0 A*Math.cos(T); FL_R FL_R amplitude A 1.0 FL_R T T 0.0");  
-	this.addTemplate("//?? tn tangent 0 0 A*Math.tan(T); FL_R FL_R amplitude A 1.0 FL_R T T 0.0"); 
-	this.addTemplate("//?? pi pi 0 0 A*pi+B; FL_R FL_R A A 1.0 FL_R B B 0.0"); 
-	this.addTemplate("//?? ex exponent 0 0 Math.pow(B,E); FL_R FL_R base B 1.0 FL_R exponent E 1.0");
-	 
-	this.addTemplate("//?? cp copy 1 1 L=R; FL_X FL_X LHS L 0 FL_X RHS R 0"); 
-	this.addTemplate("//?? arS arraySet 1 1 A[I]=C; FL_X FL_X array A [] FL_R index I 0 FL_X newValue C 0"); 
-	this.addTemplate("//?? whl while 1 1 while(C!=0){B} FL_X FL_R condition C 0 FL_S loopBody B ;"); 
-	this.addTemplate("//?? for for 2 1 for(i=I;i<L;i+=C){B} FL_R FL_R init I 0 FL_R limit L 1 FL_R increment C 1 FL_S loopBody B ;"); 
-	this.addTemplate("//?? if if 0 1 (C!=0)?A:B; FL_R FL_R condition C 1 FL_R main_A A 0 FL_R alternate_B B 0"); 
-	this.addTemplate("//?? ar arrrayRef 1 1 A[I]; FL_R FL_R array A 0 FL_R index I 0"); 
-
-	this.addTemplate("//?? ppt prPoint 0 2 this.pg.point(X,Y); FL_PT FL_R X X 0.5 FL_R Y Y 0.5"); 
-	this.addTemplate("//?? pln prLine 0 2 this.pg.line(P1,P2); FL_PL FL_PT P1 P1 0 FL_PT P2 P2 0"); 
-	this.addTemplate("//?? pci prCircle 0 2 this.pg.circle(C,R); FL_PL FL_PT C C 0 FL_PT R R 0"); 
-	this.addTemplate("//?? p1s prFirst 0 2 this.pg.first(L1,L2,P); FL_PT FL_PL L1 L1 0 FL_PL L2 L2 0 FL_PT P P 0"); 
-	this.addTemplate("//?? p2n prSecond 0 2 this.pg.second(L1,L2,P); FL_PT FL_PL L1 L1 0 FL_PL L2 L2 0 FL_PT P P 0");
-	this.addTemplate("//?? pft prParametric 0 2 this.pg.parametric(L,T); FL_PT FL_PL L L 0 FL_R T T 0"); 
-	this.addTemplate("//?? psg prSegment 0 2 this.pg.segment(L,P1,P2); FL_PS FL_PL L L 0 FL_PT P1 P1 0 FL_PT P2 P2 0"); 
-	this.addTemplate("//?? par prArc 0 2 this.pg.arc(C,P1,P2,PN); FL_PS FL_PL C C 0 FL_PT P1 P1 0 FL_PT P2 P2 0 FL_PS PN PN 0"); 
-	this.addTemplate("//?? plf prLoft 0 2 this.pg.loft(S1,S2,C); FL_PF FL_PS S1 S1 0 FL_PS S2 S2 0 FL_C C C xfff"); 
+flEditor.prototype.initStandardNodes = function() {  
+	this.addTemplate("//?? tb textBlock 3 0 S FL_S FL_S content S -"); 
+	this.addTemplate("//?? cf customFunc 4 0 F(A,B,C); FL_X FL_S function F C(A,B,C) FL_X arg1 A 5 FL_X arg2 B 1 FL_X arg3 C 0"); 
+	this.addTemplate("//?? imp importer 5 0 import(P); FL_S FL_S path P -"); 
+	this.addTemplate("//?? exp exporter 6 0 export(P,C); FL_S FL_S path P FL_S content C -"); 
+	this.addTemplate("//?? frd fileRead 0 0 fileRead(P); FL_S FL_S path P -"); 
+	this.addTemplate("//?? fwr fileWrite 0 0 fileWrite(P,C); FL_S FL_S path P - FL_S content C -"); 
+	this.addTemplate("//?? cat concatenate 0 0 A+B+C+D; FL_S FL_S first A A FL_S second B B FL_S second C C FL_S second D D"); 
+	this.addTemplate("//?? repl replace 0 0 A.replace(B,C); FL_S FL_S victim A A FL_S thingToReplace B B FL_S replWith C C"); 
+	this.addTemplate("//?? psf parseFloat 0 0 parseFloat(N); FL_R FL_S victim N 1.0"); 
 	
-	this.addTemplate("//?? tb textBlock 3 3 S FL_S FL_S content S -"); 
-	this.addTemplate("//?? cf customFunc 4 3 F(A,B,C); FL_X FL_S function F C(A,B,C) FL_X arg1 A 5 FL_X arg2 B 1 FL_X arg3 C 0"); 
-	this.addTemplate("//?? imp importer 5 3 import(P); FL_S FL_S path P -"); 
-	this.addTemplate("//?? exp exporter 6 3 export(P,C); FL_S FL_S path P FL_S content C -"); 
-
-	this.addTemplate("//?? frd fileRead 03 fileRead(P); FL_S FL_S path P -"); 
-	this.addTemplate("//?? fwr fileWrite 0 3 fileWrite(P,C); FL_S FL_S path P - FL_S content C -"); 
-	this.addTemplate("//?? cat concatenate 0 3 A+B+C+D; FL_S FL_S first A A FL_S second B B FL_S second C C FL_S second D D"); 
-	this.addTemplate("//?? repl replace 0 3 A.replace(B,C); FL_S FL_S victim A A FL_S thingToReplace B B FL_S replWith C C"); 
-	this.addTemplate("//?? psf parseFloat 0 3 parseFloat(N); FL_R FL_S victim N 1.0"); 
+	this.addTemplate("//?? cp copy 1 0 L=R; FL_X FL_X LHS L 0 FL_X RHS R 0"); 
+	this.addTemplate("//?? arS arraySet 1 0 A[I]=C; FL_X FL_X array A [] FL_R index I 0 FL_X newValue C 0"); 
+	this.addTemplate("//?? whl while 1 0 while(C!=0){B} FL_X FL_R condition C 0 FL_S loopBody B ;"); 
+	this.addTemplate("//?? for for 2 0 for(i=I;i<L;i+=C){B} FL_R FL_R init I 0 FL_R limit L 1 FL_R increment C 1 FL_S loopBody B ;"); 
+	this.addTemplate("//?? if if 0 0 (C!=0)?A:B; FL_R FL_R condition C 1 FL_R main_A A 0 FL_R alternate_B B 0"); 
+	this.addTemplate("//?? ar arrrayRef 1 0 A[I]; FL_R FL_R array A 0 FL_R index I 0"); 
 	
-	this.addTemplate("//?? v4 0 4 vec4(X,Y,Z,W); FL_V FL_R X X 0 FL_R Y Y 0 FL_R Z Z 0 FL_R W W 0"); 
-	this.addTemplate("//?? m4 0 4 mx4(R1,R2,R3,R4); FL_M FL_V Row1 R1 0 FL_V Row2 R2 0 FL_V Row3 R3 0 FL_V Row4 R4 0"); 
-	this.addTemplate("//?? lk 0 4 looking(P,L,U); FL_M FL_R P P 0 FL_R L L 0 FL_R U U 0"); 
-	// perspective, trans rot scale, multiply, invert, transpose, 
-	// guh, alla webgl.
-	this.addTemplate("//?? cR1 0 6 color(); FL_C FL_R R R 0 FL_R G G 0 FL_R B B 0 FL_R A A 0"); 
-	this.addTemplate("//?? cH1 0 6 color(H,S,B,A); FL_C FL_R H H 0 FL_R S S 0 FL_R B B 0 FL_R A A 0");  
-
-	var sels = "<option value='0'>math</option>";
-	sels += "<option value='1'>control</option><option value='2'>proportion</option>"
-    sels += "<option value='3'>strings</option><option value='4'>lin alg</option>";
-	sels += "<option value='5'>WebGL</option><option value='6'>color</option>";
+	var sels = "<option value='0'>strings + ctl</option>";
+	sels += "<option value='1'>math</option><option value='2'>proportion</option>"
+    sels += "<option value='3'>vec3</option><option value='4'>mx4</option>";
+	sels += "<option value='5'>particles</option><option value='6'>webgl</option>";
 	this.theDrop.innerHTML = sels;
 	this.setMakerButtons("0"); 
+}
+
+
+
+
+
+//// utils: is the crappiness of JS boring? yes. 
+flEditor.prototype.strEq = function(a,b) { // string compare
+	var a1 = new String(a).valueOf(); 
+	var b1 = new String(b).valueOf(); 
+	return (a1===b1);
+}
+flEditor.prototype.loadFromString = function(fileBlob) {
+	var lines = fileBlob.split('\n'); 
+	var i, j; 
+	for (i=0; i<lines.length; ++i) { 
+		var wds = lines[i].split(' '); 
+		var ct = wds.length; 
+		if (ct>4) { 
+			if (this.strEq(wds[0],"//??")) { 
+				this.addTemplate(lines[i]);  
+			}
+		}
+	}
+}
+flEditor.prototype.loadFromLibrary = function(pth, me) {
+	var xhr=new XMLHttpRequest();
+	xhr.open("GET", pth);
+	xhr.onload=function(){ 
+		me.loadFromString(xhr.responseText);
+	}
+	xhr.send();
 }
 
 flEditor.prototype.getTemplate = function(type) { 

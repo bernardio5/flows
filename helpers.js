@@ -59,13 +59,11 @@ nodeHelpers.prototype.fileWrite = function(path, content) {
 }
 
 nodeHelpers.prototype.fileRead = function(path, callback) {
-	
     this.loaded = 0; 
     this.tiles = new Image(); 
     this.tiles.src = "microTiles.png"; 
     that = this;
     this.tiles.onload= function(that) { that.loaded=1; }
-    
 	this.reader.onloadend = this.finishRead;
 	this.reader.readAsText(); 
 }

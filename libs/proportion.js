@@ -1075,6 +1075,7 @@ prPage.prototype.given = function(x, y) {
 }
 prPage.prototype.addGivenPoint = prPage.prototype.given; 
 prPage.prototype.point = prPage.prototype.given; 
+//?? prpt point 0 2 prPage.point(N) FL_V FL_R N N 0
 
 
 // two points only.
@@ -1091,6 +1092,7 @@ prPage.prototype.line = function(ob1, ob2) {
 	return res;
 }
 prPage.prototype.addLine = prPage.prototype.line; 
+//?? prLn line 0 2 prPage.line(N) FL_V FL_R N N 0
 
 
 // two points only.
@@ -1108,6 +1110,7 @@ prPage.prototype.circle = function(ob1, ob2) {
 	return res;
 }
 prPage.prototype.addCircle = prPage.prototype.circle; 
+//?? prC circle 0 2 prPage.circle(N) FL_V FL_R N N 0
 
 
 // line plus p1p2
@@ -1140,6 +1143,7 @@ prPage.prototype.segment = function(ob, p1, p2) {
 	return res;
 }
 prPage.prototype.addSegment = prPage.prototype.segment;
+//?? prSg segment 0 2 prPage.segment(N) FL_V FL_R N N 0
 
 
 // circle plus p1p2--- and p3 to identify which side
@@ -1172,7 +1176,7 @@ prPage.prototype.arc = function(ob, p1, p2, p3) {
 	return res;
 }
 prPage.prototype.addArc = prPage.prototype.arc;
-
+//?? prAr arc 0 2 prPage.arc(N) FL_V FL_R N N 0
 
 // circle plus p1p2
 prPage.prototype.loft = function(ob1, ob2) {
@@ -1187,9 +1191,7 @@ prPage.prototype.loft = function(ob1, ob2) {
 	}
 	return res;
 }
-//prPage.prototype.addArc = prPage.prototype.arc;
-
-
+//?? prAr loft 0 2 prPage.loft(N) FL_V FL_R N N 0
 
 
 // intersection returns 0, 1, or 2 points.
@@ -1215,6 +1217,7 @@ prPage.prototype.first = function( ob1,  ob2,  target) {
 	return res;
 }
 prPage.prototype.addFirstIntersection = prPage.prototype.first;
+//?? pri1 first 0 2 prPage.first(N) FL_V FL_R N N 0
 
 
 prPage.prototype.second = function( ob1,  ob2,  target) {
@@ -1236,6 +1239,7 @@ prPage.prototype.second = function( ob1,  ob2,  target) {
 	return res;
 }
 prPage.prototype.addSecondIntersection = prPage.prototype.second;
+//?? pri2 first 0 2 prPage.second(N) FL_V FL_R N N 0
 
 
 // points on lines, circles, segments, or arcs-- an abuse? Euclid did not have this.
@@ -1255,12 +1259,14 @@ prPage.prototype.parametric = function(obj, t) {
 	return res;
 }
 prPage.prototype.addParametricPoint = prPage.prototype.parametric;
+//?? ptLf parametric 0 2 prPage.parametric(N) FL_V FL_R N N 0
 
 
 prPage.prototype.closest = function(obj, pt) {
 	return this.objs[obj].cPP(this.objs[pt]); 
 }
 prPage.prototype.getClosestPointParameter = prPage.prototype.closest; 
+//?? prCl closest 0 2 prPage.closest(N) FL_V FL_R N N 0
 
 
 

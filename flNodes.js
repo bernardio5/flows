@@ -61,9 +61,12 @@ function strEq(a,b) { // string compare
 
 // constants: flIO data types; this.tp is one of these
 const FL_N = "FL_N"; 	// null
-const FL_R = "FL_R"; 	// number
+const FL_R = "FL_R"; 	// number-- int or float? js can't tell.
 const FL_S = "FL_S"; 	// str -- can be code! is, often
-const FL_V = "FL_V"; 	// vector4
+const FL_V = "FL_V"; 	// vMath.vec3
+const FL_M = "FL_M"; 	// vMath.mx4
+const FL_P = "FL_P"; 	// parts.particle
+const FL_F = "FL_F"; 	// parts.force
 const FL_C = "FL_C"; 	// color "xrrggbb"
 const FL_A = "FL_A"; 	// array! note, no typechecking
 const FL_X = "FL_X";	// not given; don't check and let the user beware, like in javascript
@@ -113,7 +116,10 @@ flIO.prototype.typeColor = function() {
 		case FL_N: res = "#000000";  break; 
 		case FL_R: res = "#ff8888";  break;
 		case FL_S: res = "#9999ff";  break;
-		case FL_V: res = "#ffff88";  break;
+		case FL_V: res = "#553333";  break;
+		case FL_M: res = "#335533";  break;
+		case FL_P: res = "#333355";  break;
+		case FL_F: res = "#553355";  break;
 		case FL_C: res = "#ff88ff";  break;
 		case FL_A: res = "#88ffff";  break;
 		case FL_X: res = "#aaaaaa";  break;

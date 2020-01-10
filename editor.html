@@ -18,6 +18,9 @@
     var aCv = document.getElementById("theFlCanvas");
     //theCx = aCv.getContext("2d");
     theE = new flEditor(document, aCv); 
+    theE.loadFromLibrary("libs/vMath.js", theE);
+    theE.loadFromLibrary("libs/proportion.js", theE);
+    theE.loadFromLibrary("libs/parts.js", theE);
     
     aCv.addEventListener('mousemove', function(evt) { theE.mouseMove(evt); } ); 
     aCv.addEventListener('mouseup', function(evt) { theE.mouseUp(evt); } ); 
