@@ -1075,7 +1075,7 @@ prPage.prototype.given = function(x, y) {
 }
 prPage.prototype.addGivenPoint = prPage.prototype.given; 
 prPage.prototype.point = prPage.prototype.given; 
-//?? prpt point 0 2 prPage.point(N) FL_V FL_R N N 0
+//?? prpt point 0 2 prPage.point(X,Y) FL_PT FL_R X X 0 FL_R Y Y 0
 
 
 // two points only.
@@ -1092,7 +1092,7 @@ prPage.prototype.line = function(ob1, ob2) {
 	return res;
 }
 prPage.prototype.addLine = prPage.prototype.line; 
-//?? prLn line 0 2 prPage.line(N) FL_V FL_R N N 0
+//?? prLn line 0 2 prPage.line(A,B) FL_PL FL_PT point_A A 0 FL_PT point_B B 0
 
 
 // two points only.
@@ -1110,7 +1110,7 @@ prPage.prototype.circle = function(ob1, ob2) {
 	return res;
 }
 prPage.prototype.addCircle = prPage.prototype.circle; 
-//?? prC circle 0 2 prPage.circle(N) FL_V FL_R N N 0
+//?? prC circle 0 2 prPage.circle(A,B) FL_PL FL_PT point_A A 0 FL_PT point_B B 0
 
 
 // line plus p1p2
@@ -1126,6 +1126,7 @@ prPage.prototype.pSegment = function(ob, t1in, t2in) {
 	return res;
 }
 prPage.prototype.addParametricSegment = prPage.prototype.segment;
+//?? prPS pSegment 0 2 prPage.pSegment(U,V) FL_PS FL_R t1 U 0.0 FL_R t2 V 1.0
 
 
 // segment from a line and 2 points
@@ -1143,7 +1144,7 @@ prPage.prototype.segment = function(ob, p1, p2) {
 	return res;
 }
 prPage.prototype.addSegment = prPage.prototype.segment;
-//?? prSg segment 0 2 prPage.segment(N) FL_V FL_R N N 0
+//?? prSg segment 0 2 prPage.segment(A,B) FL_PS FL_PT point_A A 0 FL_PT point_B B 0
 
 
 // circle plus p1p2--- and p3 to identify which side
@@ -1159,6 +1160,7 @@ prPage.prototype.pArc = function(ob, t1in, t2in, t3in) {
 	return res;
 }
 prPage.prototype.addParametricArc = prPage.prototype.pArc;
+//?? prPS pArc 0 2 prPage.pArc(C,U,V,W) FL_PS FL_L Circle C 0.0 FL_R T1 U 0.0 FL_R T2 V 1.0 FL_R T3 W 0.5
 
 
 prPage.prototype.arc = function(ob, p1, p2, p3) {
@@ -1176,7 +1178,7 @@ prPage.prototype.arc = function(ob, p1, p2, p3) {
 	return res;
 }
 prPage.prototype.addArc = prPage.prototype.arc;
-//?? prAr arc 0 2 prPage.arc(N) FL_V FL_R N N 0
+//?? prAr arc 0 2 prPage.arc(C,A,B,C) FL_PS FL_L Circle C 0 FL_PT P1 A 0 FL_PT P2 B 0 FL_PT P3 C 0
 
 // circle plus p1p2
 prPage.prototype.loft = function(ob1, ob2) {
@@ -1191,14 +1193,14 @@ prPage.prototype.loft = function(ob1, ob2) {
 	}
 	return res;
 }
-//?? prAr loft 0 2 prPage.loft(N) FL_V FL_R N N 0
+//?? prAr loft 0 2 prPage.loft(A,B) FL_PL FL_PS LeftSide A 0 PL_PS RightSide B 0
 
 
 // intersection returns 0, 1, or 2 points.
 // the "first" one is the one "closest" to target.
 // returns the point of intersection not returned by cI.
 // can also return NULL.
-prPage.prototype.first = function( ob1,  ob2,  target) {
+prPage.prototype.first = function(ob1,  ob2,  target) {
 	var res = this.objCount; 
 	if (this.isAnObject(ob1)==0) { console.log("addFirstIntersection: argument 1 is not intersectable"); res=0; }
 	if (this.isAnObject(ob2)==0) { console.log("addFirstIntersection: argument 2 is not intersectable"); res=0; }
@@ -1217,7 +1219,7 @@ prPage.prototype.first = function( ob1,  ob2,  target) {
 	return res;
 }
 prPage.prototype.addFirstIntersection = prPage.prototype.first;
-//?? pri1 first 0 2 prPage.first(N) FL_V FL_R N N 0
+//?? pri1 first 0 2 prPage.first(A,B,C) FL_PT FL_X Obj1 A 0 FL_X Obj2 B 0 PL_PT MeasurePt C 0
 
 
 prPage.prototype.second = function( ob1,  ob2,  target) {
@@ -1239,7 +1241,7 @@ prPage.prototype.second = function( ob1,  ob2,  target) {
 	return res;
 }
 prPage.prototype.addSecondIntersection = prPage.prototype.second;
-//?? pri2 first 0 2 prPage.second(N) FL_V FL_R N N 0
+//?? pri2 first 0 2 prPage.second(A,B,C) FL_PT FL_X Obj1 A 0 FL_X Obj2 B 0 PL_PT MeasurePt C 0
 
 
 // points on lines, circles, segments, or arcs-- an abuse? Euclid did not have this.
@@ -1259,19 +1261,15 @@ prPage.prototype.parametric = function(obj, t) {
 	return res;
 }
 prPage.prototype.addParametricPoint = prPage.prototype.parametric;
-//?? ptLf parametric 0 2 prPage.parametric(N) FL_V FL_R N N 0
+//?? prPrm parametric 0 2 prPage.parametric(A,T) FL_PT FL_X Object A 0 FL_R Parameter T 0.0
 
 
+// return point on object closest to pt
 prPage.prototype.closest = function(obj, pt) {
 	return this.objs[obj].cPP(this.objs[pt]); 
 }
 prPage.prototype.getClosestPointParameter = prPage.prototype.closest; 
-//?? prCl closest 0 2 prPage.closest(N) FL_V FL_R N N 0
-
-
-
-// something for adding a mark that is between two points...
-
+//?? prCl closest 0 2 prPage.closest(A,P) FL_PT FL_X Obj A 0 FL_PT Point P 0
 
 
 

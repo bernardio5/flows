@@ -1,0 +1,190 @@
+@charset "UTF-8";
+body {
+   font: 80%/1.0 Verdana, Arial, Helvetica, sans-serif;
+	margin: 0;
+	padding: 0;
+   background:black;
+   width:100%;
+   height:100%;
+}
+
+.clear {
+   height: 0;
+   font-size: 1px;
+   margin: 0;
+   padding: 0;
+   line-height: 0;
+   clear: both;
+}
+
+/* frame around all items */
+.container {	
+	width: 1344px;  /* what a weird size. fits my screen */
+   height: 720px;   
+   padding:0; 
+	background: #0;	
+}
+/* margin args: top right bottom left */
+
+/* node-editing: connections, arrangement, creation*/
+.scrSheet {
+   float: left; 
+   width: 80%;
+   height: 100%;
+
+}
+
+/* canvas column contains canvas and node-creation buttons */
+.scrCanvasColumn {
+   float: left; 
+   width: 100%;
+   height:100%;
+}
+
+.scrCanvas { 
+   background: #bbbbbb;
+}
+
+
+/* around all the controls, to the left of the scratch area*/
+.conContainer { 
+   float: right;
+   width: 15%;
+   height: 100%;
+   background:#999999;
+}
+
+/* stack of blocks: buttons, dropdown, messages/feedback, attributes/textblock*/
+.conBlockContainer { 
+   float: top;
+   width: 100%;
+   padding: 0px 3px 0px 0px;
+}
+
+/* "file" buttons: two columns, yellow */
+.conFileLeftButtonColumn { 
+   float: left;
+   width: 50%;
+}
+
+.conFileRightButtonColumn { 
+   float: right;
+   width: 50%;
+}
+
+.conFileLeftButtonHolder { 
+   float: right;
+   width: 98%;
+   height: 24px;
+   padding: 3px 3px 0px 0px;
+}
+
+.conFileRightButtonHolder { 
+   float: left;
+   width: 98%;
+   height: 24px;
+   padding: 5px;
+   padding: 3px 3px 0px 0px;
+}
+
+.conFileButton { 
+   width: 100%;
+   height: 100%;
+   background: #ffff88;
+   href: "javascript:;";
+   border-style: none;
+   font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;
+}
+
+/* dropdown menu that switches node creation button sets*/ 
+.conMakeDropHolder {
+   height: 36px;
+   padding: 3px 3px 0px 0px;
+}
+
+.conMakeDrop {
+   width: 100%;
+   border-style: none;
+   background: #ffff88;
+}
+
+/* message txtbox for a little feedback */
+.conMessages {
+   width: 99%;
+   height: 20px;
+   background: #998888;
+   rows: 15;
+   border-style: none;
+   font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;   
+}
+
+
+/* attribute controls-- names, values, color-coded, 
+   buttons to examine values and disconnect  */
+.conAttributeItem {
+   float: top;
+   width: 100%;
+   height: 18px;
+   text-align:left;
+}
+
+/* two columns */ 
+.conAttributeNameSide {
+   width:35%;
+   height: 100%;
+   float:left;
+   text-align: right;
+}
+
+.conAttributeValueSide {
+   width:65%;
+   height: 100%;
+   float:right;
+}
+
+
+.conAttributeOutput {
+   width:100%;
+   height: 100%;
+   float:center;
+   text-align: center;
+  
+}
+
+.conAttributeInputBox {
+   type: text;
+   maxLength:50;
+   width: 95%;
+   float:center;
+   text-align: left;
+   background: #88ff88; 
+   border-style: none;
+   font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;
+}   
+
+.conAttributeDisconnectButton { 
+   width: 95%;
+   float:center;
+   text-align: left;
+   background: #88aaff;
+   href: "javascript:;";
+   border-style: none;
+   font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;   
+}
+
+/* textblocks are just string inputs, but in a secial node
+ * for the sake of UX */
+.conTextBlockItem {
+   float: top;
+   width: 100%;
+   padding: 0px 0px 0px 0px;
+}
+
+/* textblocks are just string inputs, but in a secial node
+ * for the sake of UX */
+.conTextBlock {
+   width: 100%;
+   height: 250px;
+   background: "xccccff";
+   text-align:left;
+}

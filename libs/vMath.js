@@ -3,17 +3,14 @@
 
 // mreal node defns
 //?? rdm random 0 1 Math.random(); FL_R
-//?? t seconds 0 1 mainDate.getTime(); FL_R"); // requires presence of var mainDate=new Date(); 
+//?? t seconds 0 1 mainDate.getTime(); FL_R 
 //?? fr frame 0 1 frameNumber; FL_R
 //?? li linear 0 1 ((A*B)+C); FL_R FL_R A A 1.0 FL_R B B 1.0 FL_R C C 1.0
 //?? sn sine 0 1 A*Math.sin(T); FL_R FL_R amplitude A 1.0 FL_R T T 0.0
 //?? cs cosine 0 1 A*Math.cos(T); FL_R FL_R amplitude A 1.0 FL_R T T 0.0
 //?? tn tangent 0 1 A*Math.tan(T); FL_R FL_R amplitude A 1.0 FL_R T T 0.0
-//?? pi pi 0 1 A*pi+B; FL_R FL_R A A 1.0 FL_R B B 0.0
+//?? pi pi 0 1 A*pi+B; FL_R FL_R A A 2.0 FL_R B B 0.0
 //?? ex exponent 0 1 Math.pow(B,E); FL_R FL_R base B 1.0 FL_R exponent E 1.0
-	 
-
-
 
 
 function mVec3() { 
@@ -288,7 +285,7 @@ class VMath {
 	// vlists? polygons? 3D primitives? splines?
 }
 
-// Neal McDonald 1/1/2005
+// Neal McDonald 1/1/97
 
 
 

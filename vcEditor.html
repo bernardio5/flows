@@ -1,0 +1,101 @@
+<!DOCTYPE html >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>workly.com/flows/editor</title>
+<link rel="stylesheet" href="vcStyles.css">
+<script type="text/javascript" src="vcDoc.js"></script>
+<script type="text/javascript" src="vcEditor.js"></script>
+<script type="text/javascript">
+  var theE, theCx;
+  // callback for attribute text entry
+  function atrKeyIn(nID, iInd) { theE.atrKeyIn(nID, iInd, "ping"); }
+  function starterupper() { 
+    var aCv = document.getElementById("theFlCanvas");
+    theE = new vcEditor(document, aCv);     
+    aCv.addEventListener('mousemove', function(evt) { theE.mouseMove(evt); } ); 
+    aCv.addEventListener('mouseup', function(evt) { theE.mouseUp(evt); } ); 
+    aCv.addEventListener('mousedown', function(evt) { theE.mouseDown(evt); } ); 
+    theE.redraw(); 
+  }
+</script>
+</head>
+
+<body onLoad="starterupper();" >
+<div class="container">
+
+  <div class="scrSheet"><!--node canvas-->
+      <div class="scrCanvasColumn">
+        <canvas id="theFlCanvas" 
+            class="scrCanvas" 
+            width="1080" 
+            height="720"></canvas>
+        <div class="clear"></div>
+      </div>
+  </div>
+
+  <div class="conContainer"><!-- main controls div -->
+    <div class="conBlockContainer">
+      <div class="conFileLeftButtonColumn"> <!-- yellow buttons lhs -->
+            <div class="conFileLeftButtonHolder">
+              <button onclick="theE.edNew();" class="conFileButton">New/Clear</button>
+            <div class="clear"></div></div>
+            <div class="conFileLeftButtonHolder">
+              <button onclick="theE.edSave();" class="conFileButton">Save</button>
+              <div class="clear"></div></div>
+            <div class="conFileLeftButtonHolder">
+              <button onclick="theE.edSave();" class="conFileButton">Load</button>
+              <div class="clear"></div></div>
+            <div class="clear"></div>
+      </div>
+
+      <div class="conFileRightButtonColumn">      
+              <div class="conFileRightButtonHolder">
+                <button onclick="theE.setSnap(0);" class="conFileButton">No snap</button>
+				</div>
+              <div class="conFileRightButtonHolder"><!-- yellow buttons rhs -->
+                <button onclick="theE.setSnap(1);" class="conFileButton">Snap=16</button>
+                </div>
+              <div class="conFileRightButtonHolder"><!-- yellow buttons rhs -->
+                <button onclick="theE.setSnap(2);" class="conFileButton">Snap=32</button>
+                </div>
+              <div class="conFileRightButtonHolder"> 
+                <button onclick="theE.setMode(0);" class="conFileButton">Select</button>
+				</div>              
+              <div class="conFileRightButtonHolder"> 
+                <button onclick="theE.setMode(1);" class="conFileButton">Add</button>
+				</div>              
+              <div class="conFileRightButtonHolder"> 
+                <button onclick="theE.setMode(2);" class="conFileButton">Delete</button>
+				</div>              
+              <div class="clear"></div>  
+      </div>	
+      <div class="clear"></div>
+    </div>
+
+    <div class="conBlockContainer"><!-- dropdown node set switch -->
+      <div class="conMakeDropHolder">
+        <select id='nodeSet' class="conMakeDrop" onChange="theE.setMakerButtons(value);"> </select>
+		</div>
+      <div class="clear"></div>
+      </div>
+
+    <div class="conBlockContainer">
+      <div class="conXMLContainer"><!-- messages -->
+        <div class="conMessages" id="messages">messages go here</div>
+        </div>
+      </div>
+
+    <div class="conBlockContainer">
+      <div class="conAttributeItem">
+        <div class="conAttributeNameSide">Inputs:</div>
+        <div class="clear"></div>
+		</div>
+      <div id="inputsControls"> <!-- input attrs list here -->
+        </div>
+      </div>
+    <div class="clear"></div>
+  </div> <!--controls-->
+</div><!-- container -->
+
+</body>
+</html>

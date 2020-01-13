@@ -115,18 +115,18 @@ flIO.prototype.typeColor = function() {
 	switch (this.tp) { 
 		case FL_N: res = "#000000";  break; 
 		case FL_R: res = "#ff8888";  break;
-		case FL_S: res = "#9999ff";  break;
-		case FL_V: res = "#553333";  break;
-		case FL_M: res = "#335533";  break;
-		case FL_P: res = "#333355";  break;
-		case FL_F: res = "#553355";  break;
-		case FL_C: res = "#ff88ff";  break;
-		case FL_A: res = "#88ffff";  break;
+		case FL_S: res = "#88ff88";  break;
+		case FL_V: res = "#8888ff";  break; 
+		case FL_M: res = "#ff88ff";  break;
+		case FL_P: res = "#88ffff";  break;
+		case FL_F: res = "#ffff88";  break;
+		case FL_C: res = "#ff5555";  break;
+		case FL_A: res = "#55ff55";  break;
 		case FL_X: res = "#aaaaaa";  break;
-		case FL_PT:res = "#88ff88";  break; 
-		case FL_PL:res = "#88ff88";  break; 
-		case FL_PS:res = "#88ff88";  break; 
-		case FL_PF:res = "#88ff88";  break; 
+		case FL_PT:res = "#5555ff";  break; 
+		case FL_PL:res = "#55ffff";  break; 
+		case FL_PS:res = "#ff55ff";  break; 
+		case FL_PF:res = "#ffff55";  break; 
 	}
 	return res;
 }
