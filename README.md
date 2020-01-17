@@ -2,10 +2,15 @@ This is the readme for the "flows" project.
 
 This project has been put under the MIT license by its author, Neal McDonald.
 
-Okay, hey, I'm back. 
+Ok now there are two. 
+
+The level editor is a quickie drawing program. I kept wanting lists of things, 
+initialized Just So, output Just So, so: it.
 
 Flows is a JS/web-based graphical programming tool, similar to MAX/MSP,
 Pure Data, Houdini, the XCode interface builder, the Maya materials editor.
+These tend to exists to hide the need to code, but Flows assumes you want to 
+roll around in it. 
 
 The problem it (will) solves: when you are attempting to build a next of 
 interconnected function calls, the algorithm can disappear into the long lists

@@ -75,15 +75,14 @@ body {
 .conFileLeftButtonHolder { 
    float: right;
    width: 98%;
-   height: 24px;
+   height: 18px;
    padding: 3px 3px 0px 0px;
 }
 
 .conFileRightButtonHolder { 
    float: left;
    width: 98%;
-   height: 24px;
-   padding: 5px;
+   height: 18px;
    padding: 3px 3px 0px 0px;
 }
 
@@ -96,16 +95,14 @@ body {
    font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;
 }
 
-/* dropdown menu that switches node creation button sets*/ 
-.conMakeDropHolder {
-   height: 36px;
-   padding: 3px 3px 0px 0px;
-}
-
-.conMakeDrop {
+.conFileDrop { 
    width: 100%;
-   border-style: none;
+   height: 90%;
+   
+   href: "javascript:;";
    background: #ffff88;
+   border-style: none;
+   font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;
 }
 
 /* message txtbox for a little feedback */

@@ -8,13 +8,16 @@
 <script type="text/javascript">
   var theE, theCx;
   // callback for attribute text entry
-  function atrKeyIn(nID, iInd) { theE.atrKeyIn(nID, iInd, "ping"); }
+  function atrKeyIn(nID, atr) { 
+	  theE.atrKeyIn(nID, atr); 
+  }
   function starterupper() { 
     var aCv = document.getElementById("theFlCanvas");
     theE = new vcEditor(document, aCv);     
     aCv.addEventListener('mousemove', function(evt) { theE.mouseMove(evt); } ); 
     aCv.addEventListener('mouseup', function(evt) { theE.mouseUp(evt); } ); 
     aCv.addEventListener('mousedown', function(evt) { theE.mouseDown(evt); } ); 
+    document.addEventListener('keydown', function(evt) { theE.keyDown(evt); } ); 
     theE.redraw(); 
   }
 </script>
@@ -27,7 +30,7 @@
       <div class="scrCanvasColumn">
         <canvas id="theFlCanvas" 
             class="scrCanvas" 
-            width="1080" 
+            width="1140" 
             height="720"></canvas>
         <div class="clear"></div>
       </div>
@@ -36,48 +39,53 @@
   <div class="conContainer"><!-- main controls div -->
     <div class="conBlockContainer">
       <div class="conFileLeftButtonColumn"> <!-- yellow buttons lhs -->
-            <div class="conFileLeftButtonHolder">
-              <button onclick="theE.edNew();" class="conFileButton">New/Clear</button>
-            <div class="clear"></div></div>
-            <div class="conFileLeftButtonHolder">
-              <button onclick="theE.edSave();" class="conFileButton">Save</button>
-              <div class="clear"></div></div>
-            <div class="conFileLeftButtonHolder">
-              <button onclick="theE.edSave();" class="conFileButton">Load</button>
-              <div class="clear"></div></div>
-            <div class="clear"></div>
+              <div class="conFileLeftButtonHolder">
+				  <select onchange="theE.setSnap(value)" class="conFileDrop">
+					<option value="0">no snap</option>
+					<option value="4">snap 4</option>
+					<option value="8">snap 8</option>
+					<option value="16">snap 16</option>
+					<option value="32">snap 32</option>
+					<option value="64">snap 64</option>
+					</select>
+					</div>
+			  <div class="conFileLeftButtonHolder"> 
+                <button onclick="theE.setMode(1);" class="conFileButton">Add (a)</button>
+				</div>              
+              <div class="conFileLeftButtonHolder"> 
+                <button onclick="theE.setMode(0);" class="conFileButton">Select (s)</button>
+				</div>  
+              <div class="conFileLeftButtonHolder"> 
+                <button onclick="theE.setMode(2);" class="conFileButton">Delete (d)</button>
+				</div>             
+              <div class="conFileLeftButtonHolder"> 
+                <button onclick="theE.setMode(3);" class="conFileButton">Texture (t)</button>
+				</div>    
+			  <div class="conFileLeftButtonHolder"> 
+                <button onclick="theE.setTiles();" class="conFileButton">Texture Set</button>
+				</div>             
+              <div class="conFileLeftButtonHolder"> 
+                <button onclick="theE.setMode(2);" class="conFileButton">Report</button>
+				</div>             
+                       
+				<div class="clear"></div> 
       </div>
 
       <div class="conFileRightButtonColumn">      
-              <div class="conFileRightButtonHolder">
-                <button onclick="theE.setSnap(0);" class="conFileButton">No snap</button>
-				</div>
-              <div class="conFileRightButtonHolder"><!-- yellow buttons rhs -->
-                <button onclick="theE.setSnap(1);" class="conFileButton">Snap=16</button>
-                </div>
-              <div class="conFileRightButtonHolder"><!-- yellow buttons rhs -->
-                <button onclick="theE.setSnap(2);" class="conFileButton">Snap=32</button>
-                </div>
-              <div class="conFileRightButtonHolder"> 
-                <button onclick="theE.setMode(0);" class="conFileButton">Select</button>
-				</div>              
-              <div class="conFileRightButtonHolder"> 
-                <button onclick="theE.setMode(1);" class="conFileButton">Add</button>
-				</div>              
-              <div class="conFileRightButtonHolder"> 
-                <button onclick="theE.setMode(2);" class="conFileButton">Delete</button>
-				</div>              
               <div class="clear"></div>  
+            <div class="conFileRightButtonHolder">
+              <button onclick="theE.edNew();" class="conFileButton">New/Clear</button>
+            <div class="clear"></div></div>
+            <div class="conFileRightButtonHolder">
+              <button onclick="theE.edSave();" class="conFileButton">Save</button>
+              <div class="clear"></div></div>
+            <div class="conFileRightButtonHolder">
+              <button onclick="theE.edSave();" class="conFileButton">Load</button>
+              <div class="clear"></div></div>
+            <div class="clear"></div>
       </div>	
       <div class="clear"></div>
     </div>
-
-    <div class="conBlockContainer"><!-- dropdown node set switch -->
-      <div class="conMakeDropHolder">
-        <select id='nodeSet' class="conMakeDrop" onChange="theE.setMakerButtons(value);"> </select>
-		</div>
-      <div class="clear"></div>
-      </div>
 
     <div class="conBlockContainer">
       <div class="conXMLContainer"><!-- messages -->
