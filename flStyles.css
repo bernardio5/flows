@@ -127,6 +127,16 @@ body {
    font: 80%/1.2 Verdana, Arial, Helvetica, sans-serif;
 }
 
+/* file-picker */
+.conPickerItem {
+   float: top;
+   width: 100%;
+   height: 38px;
+   text-align:left;
+}
+
+
+
 /* dropdown menu that switches node creation button sets*/ 
 .conMakeDropHolder {
    height: 36px;

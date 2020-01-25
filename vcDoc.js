@@ -82,27 +82,13 @@ vcObj.prototype.getAttribsHtml = function() {
 	var res = ""; 
 	for (var prop in this) {
 		if (Object.prototype.hasOwnProperty.call(this, prop)) {
-			if (strEq(prop,'ia') || strEq(prop,'fa')) {
-				var ar = this[prop]; 
-				var lng = ar.length; 
-				for (var i=0; i<lng; ++i) { 
-					res += '<div class="conAttributeItem">';
-					res += '<div class="conAttributeNameSide">'+prop+'['+i+']:</div>';
-					res += '<div class="conAttributeValueSide">';
-					res += '<input class="conAttributeInputBox" id="atr' +this.id+prop+i+ '" value="' + ar[i]; 
-					var qprop = "'" + prop + "'";
-					res += '" onchange="atrKeyIn(' + this.id+','+qprop+i+')" /></div>';
-					res += '<div class="clear"></div></div>'; 
-				}
-			} else {
-				res += '<div class="conAttributeItem">';
-				res += '<div class="conAttributeNameSide">'+prop+':</div>';
-				res += '<div class="conAttributeValueSide">';
-				res += '<input class="conAttributeInputBox" id="atr' +this.id+prop+ '" value="' + this[prop]; 
-				var qprop = "'" + prop + "'";
-				res += '" onchange="atrKeyIn(' + this.id+','+qprop+')" /></div>';
-				res += '<div class="clear"></div></div>'; 
-			}
+			res += '<div class="conAttributeItem">';
+			res += '<div class="conAttributeNameSide">'+prop+':</div>';
+			res += '<div class="conAttributeValueSide">';
+			res += '<input class="conAttributeInputBox" id="atr' +this.id+prop+ '" value="' + this[prop]; 
+			var qprop = "'" + prop + "'";
+			res += '" onchange="atrKeyIn(' + this.id+','+qprop+')" /></div>';
+			res += '<div class="clear"></div></div>'; 
 		}
 	}
 	return res; 
@@ -111,7 +97,7 @@ vcObj.prototype.setAttr = function(which,toWhat) {
 	switch (which) {
 		case "tp": this[which] = toWhat; break;
 		case "rem": this[which] = toWhat; break;
-		case "isSelected": this[which] = toWhat!=falsy; break;
+		case "isSelected": this[which] = strEq("true",toWhat); break;
 		case "tmag": this[which] = parseFloat(toWhat); break;
 		case "mass": this[which] = parseFloat(toWhat); break;
 		case "k": this[which] = parseFloat(toWhat); break;
@@ -138,7 +124,27 @@ vcObj.prototype.selectBox = function(xlo,ylo,xhi,yhi) {
 	if (xlo>this.y+this.szy) { res = false; }
 	return res;
 }
-
+vcObj.prototype.toText = function() { 
+	var res = ""; 
+	for (var prop in this) {
+		if (Object.prototype.hasOwnProperty.call(this, prop)) {
+			res += prop + "%" + this[prop] + "~";
+		}
+	}
+	return res; 
+}
+vcObj.prototype.fromText = function(line) { 
+	var pairs = line.split('~'); 
+	var ct = pairs.length; 
+	if (ct>1) { 
+		for (var i=0; i<ct; ++i) { 
+			var aPair = pairs[i].split("%"); 
+			if (aPair.length===2) { 
+				this.setAttr(aPair[0],aPair[1]); 
+			}
+		}
+	}
+}
 
 
 
@@ -150,24 +156,21 @@ function vcDoc(context) {
 	this.cx = context; 
 	this.cxw = this.cx.canvas.width;
     this.cxh = this.cx.canvas.height;
-	this.cx.lineWidth =2;
-	this.idCounter = 1;
+	this.cx.lineWidth =1;
+	this.idCounter = 2;
 	this.nodes = [];
 	this.loaded = 0; 
-    this.tiles = new Image(); 
-    this.tiles.src = "exTiles.png"; 
-    that = this;
-    this.tiles.onload= function(that) { 
-		
-	}
-	this.newClear(); 
+}
+vcDoc.prototype.edTileSet = function(img) {
+    this.tiles = img;
+    this.redraw(); 
 }
 vcDoc.prototype.newClear = function() { 
 	this.nodes = []; 
 	var tm = new vcObj(); 
 	tm.x = 100.0; tm.y = 100.0;
 	tm.isSelected = true;
-	tm.id = 0;
+	tm.id = 1;
 	this.nodes.push(tm); 
 	return "newClear"; 
 }
@@ -175,6 +178,7 @@ vcDoc.prototype.redraw = function(mode) {
     this.cx.fillStyle = "#888888";
     this.cx.fillRect(0,0, this.cxw, this.cxh);
 	var len = this.nodes.length; 
+	this.cx.strokeStyle = "#aaaaaa"; 
 	for (var i=0;i<len; ++i) { 
 		var ot = this.findById(this.nodes[i].target); 
 		if (ot!=-1) { 	
@@ -186,7 +190,6 @@ vcDoc.prototype.redraw = function(mode) {
 			var dy = y2-y1;
 			var ax = x1+(0.3*dx); 
 			var ay = y1+(0.3*dy); 
-			this.cx.strokeStyle = "xffffffff"; 
 			this.cx.beginPath();
 			this.cx.moveTo(x1,y1); 
 			this.cx.lineTo(ax,ay); 
@@ -203,7 +206,7 @@ vcDoc.prototype.redraw = function(mode) {
 	if (mode ===3) {		
 		this.cx.drawImage(this.tiles, 0,0, 512,512, 128,128, 512,512); 
 		for (var i=0; i<17; ++i) { 
-			this.cx.strokeStyle = "x000000aa"; 
+			this.cx.strokeStyle = "#000000aa"; 
 			this.cx.beginPath();
 			this.cx.moveTo(128+(i*32), 128); 
 			this.cx.lineTo(128+(i*32), 640); 
@@ -263,58 +266,39 @@ vcDoc.prototype.deleteNode = function() {
 	}
 	this.nodes = newNodes;
 }
-vcDoc.prototype.edNew = function() { this.newClear(); return "like new."; }
-vcDoc.prototype.edSave = function(pth) { 
-	var blobStuff = "";
-	var len=this.nodes.length; 
-	for (var i=0; i<len; ++i) { 
-		blob += this.nodes[i].textBlob();
-	} 
-	var a = document.createElement("a");
-    a.href = URL.createObjectURL(pth);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function() {
-		document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);  
-    }, 0); 
-    return "save "+pth;
+
+
+vcDoc.prototype.edNew = function() { 
+	this.newClear(); 
+	return "like new."; 
 }
-vcDoc.prototype.loadCallback = function(blob) { 
-	var lines = fileBlob.split('\n'); 
+
+vcDoc.prototype.edLoad = function(blob) { 
+	var lines = blob.split('\n'); 
 	var nob = new vcObj();  
 	var isFirst = true; 
 	for (var i=0; i<lines.length; ++i) { 
-		var wds = lines[i].split('~'); 
-		var ct = wds.length; 
-		if (ct>1) { 
-			if (strEq(wds[0],"id")) { 
-				if (isFirst) { isFirst = false; }
-				else {
-					this.nodes.push(nob); 
-					nob = new vcObj(); 
-				}
+		if (lines[i].length>2) { 
+			if (isFirst) { isFirst = false; }
+			else {
+				this.nodes.push(nob); 
+				nob = new vcObj(); 
 			}
-			nob.setAttr(wds[0],wds[1]); 
+			nob.fromText(lines[i]); 
+			this.nodes.push(nob); 
 		}
 	}
-	this.nodes.push(nob); 
 }
-vcDoc.prototype.edLoad = function(pth) { 
-	this.nodes = [];  
-	var xhr=new XMLHttpRequest();
-	xhr.open("GET", pth);
-	xhr.onload=function(){ 
-		this.loadCallback(xhr.responseText);
-		redraw();
-	}
-	xhr.send();
-	return "loading "+ pth;
+
+vcDoc.prototype.edReport = function(pth) { 
+	var blob = "";
+	var len=this.nodes.length; 
+	for (var i=0; i<len; ++i) { 
+		blob += this.nodes[i].toText() + "\n";
+	} 
+	return blob; 
 }
-// 	this.theText.innerHTML = this.theD.viewIO(nodeId, inpInd); 
-vcDoc.prototype.viewIO = function(nodeId, inpInd) { } // ??
-//	this.theD.atrKeyIn(nodeID, inpInd, theVal); 
+
 vcDoc.prototype.setAttr = function(nID, atr, val) { 
 	var s = this.findById(nID);
 	if (s>-1) {  	
@@ -338,13 +322,11 @@ vcDoc.prototype.clearSelection = function() {
 		this.nodes[i].isSelected = false; 
 	}
 }
-
 vcDoc.prototype.selectClick = function(cx,cy) {
 	this.clearSelection(); 
 	var h = this.whichHit(cx,cy); 
 	if (h>-1) { this.nodes[h].isSelected = true; }
 }
-
 vcDoc.prototype.addClick = function(cx,cy) {
 	var tm = new vcObj(); 
 	var s = this.firstSelected();
@@ -356,10 +338,17 @@ vcDoc.prototype.addClick = function(cx,cy) {
 	this.nodes.push(tm); 
 }
 
-vcDoc.prototype.deleteClick = function(cx,cy) {
+vcDoc.prototype.addDrag = function(cx,cy) {
 	var h = this.whichHit(cx,cy); 
-	if (h>-1) { 
-		this.nodes.splice(h, 1); 
+	if (h>-1) {
+		// don't let drag make many in the same place.
+		var dx = this.nodes[h].x - cx;
+		var dy = this.nodes[h].y - cy;
+		if ((dx*dx)+(dy*dy)>3.0) {
+			this.addClick(cx, cy); 
+		}
+	} else {
+		this.addClick(cx, cy); 
 	}
 }
 
@@ -377,6 +366,32 @@ vcDoc.prototype.move = function(cx,cy) {
 	var h = this.firstSelected(cx,cy); 
 	if (h>-1) { 
 		this.nodes[h].move(cx,cy); 
+	}
+}
+
+vcDoc.prototype.deleteCommand = function() {
+	var newnds = []; 
+	var len = this.nodes.length;
+	for (var i=0; i<len; i=i+1) {
+		if (!this.nodes[i].isSelected) {
+			newnds.push(this.nodes[i]);
+		} 
+	}
+	this.nodes = newnds; 
+}
+
+vcDoc.prototype.command = function(which) {
+	switch (which) { 
+		case 0: this.deleteCommand(); break; // delete
+		case 1: break; // copy
+		case 2: break; // paste
+	}
+}
+
+vcDoc.prototype.select = function(which) {
+	var len = this.nodes.length;
+	for (var i=0; i<len; i=i+1) {
+		this.nodes[i].isSelected = (this.nodes[i].id===which);
 	}
 }
 

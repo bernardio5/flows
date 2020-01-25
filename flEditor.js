@@ -172,8 +172,15 @@ flEditor.prototype.edNew = function() {
 	this.theText.innerHTML = this.theG.edNew(); 
 }
 
-flEditor.prototype.edSave = function() {
-	this.theText.innerHTML = this.theG.edSave(); 
+flEditor.prototype.edReport = function() {
+	var len = this.templs.length; 
+	var blob = "tmp " + len + "\n"; 
+	for (var i=0; i<len; ++i) { 
+		blob += this.templs[i].giveReportString(); 
+	}
+	blob += this.theG.edReport(); 
+	console.log(blob); 
+	this.theText.innerHTML = "output to console"; 
 }
 
 flEditor.prototype.edLoad = function() {

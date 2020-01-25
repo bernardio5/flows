@@ -20,7 +20,7 @@ body {
 /* frame around all items */
 .container {	
 	width: 1344px;  /* what a weird size. fits my screen */
-   height: 720px;   
+   height: 600px;   
    padding:0; 
 	background: #0;	
 }
@@ -118,6 +118,13 @@ body {
 
 /* attribute controls-- names, values, color-coded, 
    buttons to examine values and disconnect  */
+.conPickerItem {
+   float: top;
+   width: 100%;
+   height: 38px;
+   text-align:left;
+}
+
 .conAttributeItem {
    float: top;
    width: 100%;

@@ -176,27 +176,36 @@ flIO.prototype.copy = function(tmpl, nodePtr) {
 }
 
 
-flIO.prototype.giveSaveString = function() {
-	var res = " io " + this.tp + " " + this.vn + " " + this.sm + " " + this.vl;
-	if (this.isIn) { res = res + " T " } else { res = res + " F "; }
-	if (this.con) { res = res + " T " } else { res = res + " F "; }
-	res = res + this.secondColor + " " + this.iInd + " " + this.oNode.nodeID + " " + this.oInd;
+flIO.prototype.giveReportString = function() {
+	var res = "io " + this.tp + " " + this.vn + " " + this.sm + " " + this.vl;
+	if (this.isIn) { res = res + " T" } else { res = res + " F"; }
+	if (this.con) { res = res + " T" } else { res = res + " F"; }
+	res += this.secondColor + " " + this.iInd + " " + this.iNode.nodeID;
+	if (this.con) { 
+		res += " " + this.oInd + " " + this.oNode.nodeID;
+	} else { res += " -1 -1"; }
+	res += "\n";
 	return res;
 }
 
-flIO.prototype.setFromString = function(wdAr, ind) {
+flIO.prototype.setFromString = function(line) {
+	wdAr = line.split(" "); 
+	if (wdAr.length!=12) return; 
 	if (!strEq(wdAr[ind], "io")) return;
 	this.tp = wdAr[ind+1];
 	this.vn = wdAr[ind+2];
 	this.sm = wdAr[ind+3];
 	this.vl = wdAr[ind+4];
-	if (strEq(wdAr[ind+5], "F")) { this.isIn=false; }
-	if (strEq(wdAr[ind+6], "T")) { this.con=true; }
+	this.isIn = strEq(wdAr[ind+5], "T");
+	this.con = strEq(wdAr[ind+6], "T")
 	this.secondColor = wdAr[ind+7];
 	this.iInd = wdAr[ind+8];
-	this.con = wdAr[ind+9];
-	this.tempNodeId = wdAr[ind+10];
-	this.oInd = wdAr[ind+11];
+	this.iId = wdAr[ind+9];
+	if (this.con) { 
+		this.oInd = wdAr[ind+10];
+		this.oId = wdAr[ind+11];
+	}
+	return res; 
 }
 
 
@@ -525,16 +534,17 @@ flNode.prototype.copy = function(it, idnumber) { // that is, make this a copy of
 }
 
 
-flNode.prototype.giveSaveNodeString = function() {
+flNode.prototype.giveReportString = function() {
 	var res = "node ";
-	res = this.vn + " " + this.tp + " " + this.lb + " " + this.gp + " ";
-	res = res + this.cm + " " + this.posX + " " + this.posY + " " + this.nodeID + " ";
-	res = res + this.spc + " " + this.wdt + " " + this.inputs.length + " " + this.outputs.length;
+	res += this.tp + " " + this.lb + " " + this.vn + " " + this.gp + " ";
+	res += this.cm + " " + this.posX + " " + this.posY + " " + this.nodeID + " ";
+	res += this.spc + " " + this.wdt;
+	res += " " + this.inputs.length + " " + this.outputs.length + "\n";
 	for (var i=0; i<this.inputs.length; i=i+1) {
-		res = res + this.inputs[i].giveSaveString();
+		res = res + this.inputs[i].giveReportString();
 	}
 	for (var i=0; i<this.outputs.length; i=i+1) {
-		res = res + this.outputs[i].giveSaveString();
+		res = res + this.outputs[i].giveReportString();
 	}
 	return res; 
 }
@@ -546,14 +556,18 @@ flNode.prototype.setWithSaveString = function(str) {
 	if (ct<12) return -1; // not enough arguments
 	if (!strEq(wds[0], "node")) return -1; // no leading "node"! not a node, then
 	
-	this.tp = wds[2];
-	this.lb = wds[3];
+	this.tp = wds[1];
+	this.lb = wds[2];
+	this.vn = wds[3];
 	this.gp = parseInt(wds[4]);
+	
 	this.cm = wds[5];
 	this.posX = parseFloat(wds[6]);
 	this.posY = parseFloat(wds[7]);
-	this.spc = parseInt(wds[8]);
-	this.wdt = parseInt(wds[9]);
+	this.nodeID = parseInt(wds[8]); 
+	
+	this.spc = parseInt(wds[9]);
+	this.wdt = parseInt(wds[10]);
 	this.inputs = [];
 	this.outputs = [];
 	var ict = parseInt(wds[10]);
@@ -878,10 +892,15 @@ flGraph.prototype.loadNodesCallback= function() {
 	// for each node, give line to create node
 }
 
+flGraph.prototype.edReport = function() { 
+	var ln = this.nodes.length; 
+	var res = "" + ln + "\n";
+	for (var i=0; i<ln; ++i) {
+		res += this.nodes[i].giveReportString(); 
+	}	
+	return res; 
+}
 
-
-
-flGraph.prototype.edSave = function() { return "edSave"; }
 flGraph.prototype.edLoad = function() { return "edLoad"; }
 
 flGraph.prototype.edEvaluate = function() { 

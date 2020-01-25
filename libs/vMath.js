@@ -95,7 +95,7 @@ class VMath {
 			return it;
 		}
 	}
-//?? vadd vAdd 0 3 vMath.vAdd(A,B) FL_V FL_V A A vMath.zeroV() FL_V B B vMath.zeroV()
+//?? vadd vAdd 0 3 vMath.vAdd(A,B) FL_V FL_V U U vMath.zeroV() FL_V V V vMath.zeroV()
 	static vAdd(a,b) { return newVec(a.x+b.x,a.y+b.y,a.z+b.z); }
 //?? vsub vSub 0 3 vMath.vSub(A,B) FL_V FL_V A A vMath.zeroV() FL_V B B vMath.zeroV()
 	static vSub(a,b) { return newVec(a.x-b.x,a.y-b.y,a.z-b.z); }

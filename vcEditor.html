@@ -1,16 +1,13 @@
 <!DOCTYPE html >
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>workly.com/flows/editor</title>
+<title>workly.com/flows/vcEdit</title>
 <link rel="stylesheet" href="vcStyles.css">
 <script type="text/javascript" src="vcDoc.js"></script>
 <script type="text/javascript" src="vcEditor.js"></script>
 <script type="text/javascript">
   var theE, theCx;
-  // callback for attribute text entry
-  function atrKeyIn(nID, atr) { 
-	  theE.atrKeyIn(nID, atr); 
-  }
+  function atrKeyIn(nID, atr) { theE.atrKeyIn(nID, atr); }
   function starterupper() { 
     var aCv = document.getElementById("theFlCanvas");
     theE = new vcEditor(document, aCv);     
@@ -25,67 +22,56 @@
 
 <body onLoad="starterupper();" >
 <div class="container">
-
   <div class="scrSheet"><!--node canvas-->
       <div class="scrCanvasColumn">
         <canvas id="theFlCanvas" 
             class="scrCanvas" 
             width="1140" 
-            height="720"></canvas>
+            height="600"></canvas>
         <div class="clear"></div>
+        <div hidden><div id="saveScratch"></div></div>
       </div>
   </div>
-
   <div class="conContainer"><!-- main controls div -->
-    <div class="conBlockContainer">
-      <div class="conFileLeftButtonColumn"> <!-- yellow buttons lhs -->
-              <div class="conFileLeftButtonHolder">
-				  <select onchange="theE.setSnap(value)" class="conFileDrop">
-					<option value="0">no snap</option>
-					<option value="4">snap 4</option>
-					<option value="8">snap 8</option>
-					<option value="16">snap 16</option>
-					<option value="32">snap 32</option>
-					<option value="64">snap 64</option>
-					</select>
-					</div>
-			  <div class="conFileLeftButtonHolder"> 
-                <button onclick="theE.setMode(1);" class="conFileButton">Add (a)</button>
-				</div>              
-              <div class="conFileLeftButtonHolder"> 
-                <button onclick="theE.setMode(0);" class="conFileButton">Select (s)</button>
-				</div>  
-              <div class="conFileLeftButtonHolder"> 
-                <button onclick="theE.setMode(2);" class="conFileButton">Delete (d)</button>
-				</div>             
-              <div class="conFileLeftButtonHolder"> 
-                <button onclick="theE.setMode(3);" class="conFileButton">Texture (t)</button>
-				</div>    
-			  <div class="conFileLeftButtonHolder"> 
-                <button onclick="theE.setTiles();" class="conFileButton">Texture Set</button>
-				</div>             
-              <div class="conFileLeftButtonHolder"> 
-                <button onclick="theE.setMode(2);" class="conFileButton">Report</button>
-				</div>             
-                       
-				<div class="clear"></div> 
-      </div>
-
-      <div class="conFileRightButtonColumn">      
-              <div class="clear"></div>  
-            <div class="conFileRightButtonHolder">
-              <button onclick="theE.edNew();" class="conFileButton">New/Clear</button>
-            <div class="clear"></div></div>
-            <div class="conFileRightButtonHolder">
-              <button onclick="theE.edSave();" class="conFileButton">Save</button>
-              <div class="clear"></div></div>
-            <div class="conFileRightButtonHolder">
-              <button onclick="theE.edSave();" class="conFileButton">Load</button>
-              <div class="clear"></div></div>
-            <div class="clear"></div>
-      </div>	
-      <div class="clear"></div>
-    </div>
+				<div class="conBlockContainer"><!-- yellow buttons -->
+					<div class="conFileLeftButtonColumn"> 
+						 <div class="conFileLeftButtonHolder">
+								<select onchange="theE.setSnap(value)" class="conFileDrop">
+									<option value="0">no snap</option>
+									<option value="4">snap 4</option>
+									<option value="8">snap 8</option>
+									<option value="16">snap 16</option>
+									<option value="32">snap 32</option>
+									<option value="64">snap 64</option>
+									</select>
+								</div>
+						<div class="conFileLeftButtonHolder"> 
+							<button onclick="theE.setMode(1);" class="conFileButton">Add (a)</button>
+							</div>              
+						<div class="conFileLeftButtonHolder"> 
+							<button onclick="theE.setMode(0);" class="conFileButton">Select (s)</button>
+							</div>  
+						<div class="conFileLeftButtonHolder"> 
+							<button onclick="theE.setMode(3);" class="conFileButton">Texture (t)</button>
+							</div>
+						<div class="clear"></div> 
+					</div><!--left-->
+					<div class="conFileRightButtonColumn">      
+						<div class="conFileRightButtonHolder">
+							<button onclick="theE.edNew();" class="conFileButton">New/Clear</button>
+							</div>
+						<div class="conFileRightButtonHolder">
+							<button onclick="theE.edLoad();" class="conFileButton">Load Graph</button>
+							</div>
+						<div class="conFileRightButtonHolder">
+							<button onclick="theE.edTileSet();" class="conFileButton">Set Tiles</button>	
+							</div>
+						<div class="conFileRightButtonHolder">
+							<button onclick="theE.edReport();" class="conFileButton">Report</button>
+							</div>
+						</div>
+					<div class="clear"></div>
+				</div><!--end buttons-->
 
     <div class="conBlockContainer">
       <div class="conXMLContainer"><!-- messages -->
@@ -93,6 +79,18 @@
         </div>
       </div>
 
+    <div class="conBlockContainer"><!--paths-->
+		<div class="conPickerItem">
+				Node file:<br>
+				<input class="conAttributeInputBox" type="file" id="ldFile" />
+			<div class="clear"></div>
+			</div>
+		<div class="conPickerItem">
+			  Texture file:
+				<input class="conAttributeInputBox" type="file" id="txNm" />
+			<div class="clear"></div>
+			</div>
+		</div>		
     <div class="conBlockContainer">
       <div class="conAttributeItem">
         <div class="conAttributeNameSide">Inputs:</div>
@@ -104,6 +102,5 @@
     <div class="clear"></div>
   </div> <!--controls-->
 </div><!-- container -->
-
 </body>
 </html>
