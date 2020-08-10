@@ -38,7 +38,7 @@ far with that yet. I ought to do some sprite stuff..
 
 Javascript runs in a sandbox, so file I/O is usually disabled. The "report" button
 evaluates the node tree and outputs to the debugger console, and you can copy/paste from there. 
-Which is kinda crappy but hey: FREE TERSE WEIRD CUSOMIZABLE VISUAL PROGRAMMING ENVIRONMENT you're welcome. 
+Which is kinda sketchy but hey: FREE TERSE WEIRD CUSOMIZABLE VISUAL PROGRAMMING ENVIRONMENT you're welcome. 
 
 I'm working in Firefox; Chrome and Edge seem to work OK, too. 
 
@@ -64,16 +64,15 @@ The editor has two collections of nodes: the template list, which has one entry 
 and the graph, which is the flGraph you're working on. 
 
 
+Tiles:
 
-
-
-The level editor is a quickie drawing program. I kept wanting lists of things, 
+is a quickie tile-editor. I kept wanting lists of things, 
 initialized Just So, output Just So, so: it.
 
 The "scratch" directory contains tile-set images that you can use, or you could add your own. 
 
 The tile editor can load tile arrangements, but JS usually won't let you save, so 
-that just gets sent to console. Crappy; functional. Sorta. 
+that just gets sent to console. Scketchy, functional, hrmph. 
 
 Tiles can point to each other; I've found this endlessly useful in games: triggers, 
 hinges, targets, path segments, scripting, timers. 
