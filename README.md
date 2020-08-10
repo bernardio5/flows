@@ -1,16 +1,14 @@
-This is the readme for the "flows" project. 
+This project contains two editors. The "Flows" editor is a visual programming 
+enviornment, sort of. The "Tiles" editor is a tile editor, for video-game editing-- 
+games TBD. 
 
-This project has been put under the MIT license by its author, Neal McDonald.
+To run them, clone this project and load the "index.html".
 
-Ok now there are two. 
-
-The level editor is a quickie drawing program. I kept wanting lists of things, 
-initialized Just So, output Just So, so: it.
+Flows:
 
 Flows is a JS/web-based graphical programming tool, similar to MAX/MSP,
 Pure Data, Houdini, the XCode interface builder, the Maya materials editor.
-These tend to exists to hide the need to code, but Flows assumes you want to 
-roll around in it. 
+These tend to exist to hide the need to code, but Flows, no.
 
 The problem it (will) solves: when you are attempting to build a next of 
 interconnected function calls, the algorithm can disappear into the long lists
@@ -28,7 +26,21 @@ The editor, right now, is making JavaScript commands, but the technique is langu
 The nodes types are created/loaded at runtime from text that specifies inputs, outputs,
 and the command that the node type will generate. 
 
+The "libs" folder contains javascript libraries that do things. The code in these libraries 
+is not loaded by Flows; Flows makes code, but it isn't a run environment. The code is 
+scanned by Flows, so that it can make code that uses the libraries. In the library source are 
+comment lines prefixed by "//??"; these lines are node type definitions, which tell Flows
+data types and call syntax. 
 
+So, Flows lets you make code that calls functions from these libraries. There's linear algebra, 
+some particle system/physics, Proportion (cf.), and the stump of a WebGL, but I have nto gotten
+far with that yet. I ought to do some sprite stuff.. 
+
+Javascript runs in a sandbox, so file I/O is usually disabled. The "report" button
+evaluates the node tree and outputs to the debugger console, and you can copy/paste from there. 
+Which is kinda crappy but hey: FREE TERSE WEIRD CUSOMIZABLE VISUAL PROGRAMMING ENVIRONMENT you're welcome. 
+
+I'm working in Firefox; Chrome and Edge seem to work OK, too. 
 
 Implementation Description: 
 
@@ -53,6 +65,18 @@ and the graph, which is the flGraph you're working on.
 
 
 
+
+
+The level editor is a quickie drawing program. I kept wanting lists of things, 
+initialized Just So, output Just So, so: it.
+
+The "scratch" directory contains tile-set images that you can use, or you could add your own. 
+
+The tile editor can load tile arrangements, but JS usually won't let you save, so 
+that just gets sent to console. Crappy; functional. Sorta. 
+
+Tiles can point to each other; I've found this endlessly useful in games: triggers, 
+hinges, targets, path segments, scripting, timers. 
 
 
 
