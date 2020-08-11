@@ -2,7 +2,7 @@ This project contains two editors. The "Flows" editor is a visual programming
 enviornment, sort of. The "Tiles" editor is a tile editor, for video-game editing-- 
 games TBD. 
 
-To run them, clone this project and load the "index.html".
+The project is online in a runnable form at workly.com/editors , or you could clone this project and load "index.html".
 
 Flows:
 
